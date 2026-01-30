@@ -19,11 +19,20 @@ async def testcmd(ita: discord.Interaction):
     await ita.response.send_message("Test command successfully executed")
     return
 
-# Example parameter description, add :
-# @bot.tree.command(name="setposttime", description="Set the daily post time (server timezone setting in code)")
-# @app_commands.describe(hour="0-23", minute="0-59")
+@bot.tree.command(name="testparams", description="Test command with parameter descriptions")
+@app_commands.describe(hour="0-23", minute="0-59")
+async def testparams(ita: discord.Interaction, hour: int, minute: int):
+    await ita.response.send_message("Test command successfully executed. "\
+                                    f"Arguments received: Hour: {hour}, Minute: {minute}")
+    return
+
 
 async def main() -> None:
     async with bot:
         await bot.start(BOT_TOKEN)
+
+
+# Example parameter description, add `app_commands.describe` decorator:
+# @bot.tree.command(name="setposttime", description="Set the daily post time (server timezone setting in code)")
+# @app_commands.describe(hour="0-23", minute="0-59")
 
