@@ -1,8 +1,12 @@
 import discord
 import logging
+import asyncio
 from discord.ext import commands
 
 PREFIXES = ";", "!", ">", "."
+TIMEZONE_NAME: str = "America/New_York"
+POST_HR: int = 9
+POST_MIN: int = 0
 
 class Bot(commands.Bot):
     def __init__(self) -> None:
@@ -39,3 +43,8 @@ class Bot(commands.Bot):
             formatter=formatter,
             handler=handler,
         )
+    
+    async def setup_hook(self) -> None:
+        await self.tree.sync()
+
+
