@@ -16,6 +16,8 @@ giveaway events).
 
 - Commands (admin):
     - /addquestion "text"
+    - /listquestions (show like 20~?)
+    - /setposttime (change the schedule)
     - /removequestion number:42 (maybe?)
     - /previewnext to show what will be posted tomorrow
 
