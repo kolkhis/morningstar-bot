@@ -2,6 +2,8 @@ import os
 import sys
 import asyncio
 import discord
+from discord import app_commands
+from discord.ext import commands, tasks
 from bot import Bot
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
@@ -16,6 +18,10 @@ bot: Bot = Bot()
 async def testcmd(ita: discord.Interaction):
     await ita.response.send_message("Test command successfully executed")
     return
+
+# Example parameter description, add :
+# @bot.tree.command(name="setposttime", description="Set the daily post time (server timezone setting in code)")
+# @app_commands.describe(hour="0-23", minute="0-59")
 
 async def main() -> None:
     async with bot:
