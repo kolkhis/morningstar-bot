@@ -44,6 +44,4 @@ has the proper read permissions for the user account that is running it.
 
 
 
-```html
-https://discord.com/oauth2/authorize?client_id=1465862547088347179&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A80&integration_type=0&scope=identify+guilds+guilds.channels.read+guilds.join+presences.write+applications.commands+messages.read+activities.invites.write+presences.read+webhook.incoming+rpc+applications.builds.read+applications.entitlements+voice+dm_channels.messages.read+activities.read+openid+sdk.social_layer+bot+connections+guilds.members.read+applications.builds.upload+applications.store.update+activities.write+relationships.write+role_connections.write+gateway.connect+sdk.social_layer_presence+application_identities.write+email+gdm.join
-```
+
