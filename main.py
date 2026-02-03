@@ -29,8 +29,11 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
 
 async def main() -> None:
     async with bot:
+        print("Bot starting...")
         await bot.start(BOT_TOKEN)
 
+if __name__ == '__main__':
+    asyncio.run(main())
 
 # Example parameter description, add `app_commands.describe` decorator:
 # @bot.tree.command(name="setposttime", description="Set the daily post time (server timezone setting in code)")
