@@ -39,7 +39,8 @@ This will safely pull the bot token from a file of your choosing. In this case,
 it is the `MORNINGSTAR_TOKEN` file in my `~/.config/discord` directory. You
 will need to create this directory yourself.  
 
-The file should contain only one line, the bot token itself.  
+The file should contain only one line, the bot token itself. Ensure the file 
+has the proper read permissions for the user account that is running it.  
 
 
 
