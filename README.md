@@ -9,10 +9,29 @@ giveaway events).
 
 ## Ideas
 
-- Questions will be read from file, removed once posted and then put into a
-  different `finished.txt` (or something).  
-    - When the prompt file is empty, do not post? Or post a random question
-      from `finished.txt`?  
+- Questions will be read from a json file, with a `asked` key set to the value
+  of the date it was asked, and `null` if it has not been asked. Only questions
+  that have not been asked already will be posted (unless no unasked questions
+  remain).  
+    - Possible question format:
+      ```json
+      {
+        "version": 1,
+        "next_index": 0,
+        "questions": [
+          {
+            "id": "q_000001",
+            "text": "What did you learn today?",
+            "added_by": 123456789012345678,
+            "added_at": "2026-02-03T15:55:00-05:00",
+            "active": true,
+            "used_count": 0,
+            "last_used": null,
+            "tags": []
+          }
+        ]
+      }
+      ```
 
 - Commands (admin):
     - /addquestion "text"
@@ -51,4 +70,7 @@ This variable is used to more quickly sync slash commands with the server.
 
 
 
+## Resources
+
+- [`discord.ext.tasks` Documentation](https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html)
 
