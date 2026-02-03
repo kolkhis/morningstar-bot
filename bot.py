@@ -1,9 +1,10 @@
-import discord
-import logging
-import asyncio
 import os
 import sys
+import logging
+import asyncio
+import discord
 from discord.ext import commands
+from typing import Optional, Sequence
 
 PREFIXES = ";", "!", ">", "."
 TIMEZONE_NAME: str = "America/New_York"
@@ -19,8 +20,8 @@ class Bot(commands.Bot):
         self.setup_logging()
         self.prefixes: tuple = PREFIXES
 
-        self.guild_id=os.environ.get('GUILD_ID', None)
-        self.forum_channel_id=os.environ.get('FORUM_CHANNEL', None)
+        self.guild_id=os.environ.get('GUILD_ID', '')
+        self.forum_channel_id=os.environ.get('FORUM_CHANNEL', '')
         if not self.guild_id or not self.forum_channel_id:
             sys.stderr.write("[ERROR]: The GUILD_ID or FORUM_CHANNEL environment " \
                              "variables are unset!\n")
@@ -66,4 +67,24 @@ class Bot(commands.Bot):
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
 
+
+    async def add_forum_post(self,
+                             title: str,
+                             body: str,
+                             forum_channel_id: int = self.forum_channel_id,
+                             tags: Optional[Sequence[str]] = None,
+                             ) -> discord.Thread:
+        channel = self.get_channel(self.forum_channel_id)
+        if not channel:
+           channel = await self.fetch_channel(self.forum_channel_id)
+        if not isinstance(channel, discord.ForumChannel):
+            raise TypeError(f"Channel {self.forum_channel_id} is not a " \
+                            f"ForumChannel. Got {type(channel)} instead.")
+        thread = await channel.create_thread(
+            name=title,
+            content=body,
+            # tags=[],
+        )
+
+        return thread
 
