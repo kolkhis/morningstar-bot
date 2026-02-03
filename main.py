@@ -26,6 +26,14 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
                                     f"Arguments received: Hour: {hour}, Minute: {minute}")
     return
 
+@bot.tree.command(name="addpost", description="Command to manually add a post to the forum channel")
+async def addpost(ita: discord.Interaction, title: str, body: str):
+    print(f"Attempting to add forum post with the title {title} and content {body}")
+    if not title or not body:
+        await ita.response.send_message("ERROR: Either a body or title was not provided!")
+        return
+    post = await bot.add_forum_post(title=title, body=body)
+    await ita.response.send_message(f"Thread was successfully created: {thread.mention}")
 
 async def main() -> None:
     async with bot:
@@ -38,4 +46,3 @@ if __name__ == '__main__':
 # Example parameter description, add `app_commands.describe` decorator:
 # @bot.tree.command(name="setposttime", description="Set the daily post time (server timezone setting in code)")
 # @app_commands.describe(hour="0-23", minute="0-59")
-
