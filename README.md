@@ -30,10 +30,11 @@ python3 -m venv venv
 ```
 **Note:** This requires the `python3.10-venv` package on Debian-based systems.
 
-Once the virtual environment is created, set the following line in the
+Once the virtual environment is created, set the following lines in the
 `venv/bin/activate` venv activation script.  
 ```bash
 export BOT_TOKEN="$(head -1 ~/.config/discord/MORNINGSTAR_TOKEN)"
+export GUILD_ID="1234567890"
 ```
 This will safely pull the bot token from a file of your choosing. In this case,
 it is the `MORNINGSTAR_TOKEN` file in my `~/.config/discord` directory. You
@@ -41,6 +42,12 @@ will need to create this directory yourself.
 
 The file should contain only one line, the bot token itself. Ensure the file 
 has the proper read permissions for the user account that is running it.  
+
+The `GUILD_ID` can either be hardcoded in the `activate` script, or can be
+pulled from a file in the same fashion as the `BOT_TOKEN` variable. This is
+the Discord server ID, obtained by right clicking on the server name at the top
+left and selecting "Copy server ID" (requires developer mode to be enabled).  
+This variable is used to more quickly sync slash commands with the server.  
 
 
 
