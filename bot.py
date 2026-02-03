@@ -10,11 +10,6 @@ TIMEZONE_NAME: str = "America/New_York"
 POST_HR: int = 9
 POST_MIN: int = 0
 
-GUILD_ID=os.environ.get('GUILD_ID', None)
-if not GUILD_ID:
-    sys.stderr.write("[ERROR]: No guild ID was found!\n")
-    sys.exit(1)
-
 class Bot(commands.Bot):
 
     def __init__(self) -> None:
@@ -24,6 +19,13 @@ class Bot(commands.Bot):
         self.setup_logging()
         self.prefixes: tuple = PREFIXES
 
+        self.guild_id=os.environ.get('GUILD_ID', None)
+        self.forum_channel_id=os.environ.get('FORUM_CHANNEL', None)
+        if not self.guild_id or not self.forum_channel_id:
+            sys.stderr.write("[ERROR]: The GUILD_ID or FORUM_CHANNEL environment " \
+                             "variables are unset!\n")
+            sys.exit(1)
+
     def setup_logging(self) -> None:
         """
         Set up logging for the bot. 
@@ -31,6 +33,8 @@ class Bot(commands.Bot):
         Passes in a custom formatter to `discord.utils.setup_logging` to 
         customize the format of the log string. 
         """
+        if not os.path.isdir("./logs"):
+            os.makedirs("logs", exist_ok=True)
         logging.basicConfig(
             filename="logs/bot.log",
             level=logging.INFO,
@@ -57,7 +61,7 @@ class Bot(commands.Bot):
         print(f"Ready and waiting for events...")
 
     async def setup_hook(self) -> None:
-        guild = discord.Object(id=GUILD_ID)
+        guild = discord.Object(id=self.guild_id)
         self.tree.copy_global_to(guild=guild)
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
