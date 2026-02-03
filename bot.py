@@ -1,6 +1,8 @@
 import discord
 import logging
 import asyncio
+import os
+import sys
 from discord.ext import commands
 
 PREFIXES = ";", "!", ">", "."
@@ -8,7 +10,13 @@ TIMEZONE_NAME: str = "America/New_York"
 POST_HR: int = 9
 POST_MIN: int = 0
 
+GUILD_ID=os.environ.get('GUILD_ID', None)
+if not GUILD_ID:
+    sys.stderr.write("[ERROR]: No guild ID was found!\n")
+    sys.exit(1)
+
 class Bot(commands.Bot):
+
     def __init__(self) -> None:
         intents: discord.Intents = discord.Intents.default()
         intents.message_content = True
@@ -43,8 +51,15 @@ class Bot(commands.Bot):
             formatter=formatter,
             handler=handler,
         )
-    
+
+    async def on_ready(self) -> None:
+        print(f"Logged in as {self.user} (id={self.user.id})")
+        print(f"Ready and waiting for events...")
+
     async def setup_hook(self) -> None:
-        await self.tree.sync()
+        guild = discord.Object(id=GUILD_ID)
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
+        print(f"Slash commands synced to guild {guild}")
 
 
