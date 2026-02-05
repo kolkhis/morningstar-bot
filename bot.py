@@ -20,8 +20,8 @@ class Bot(commands.Bot):
         self.setup_logging()
         self.prefixes: tuple = PREFIXES
 
-        self.guild_id=os.environ.get('GUILD_ID', '')
-        self.forum_channel_id=os.environ.get('FORUM_CHANNEL', '')
+        self.guild_id: int = int(os.environ.get('GUILD_ID', '0'))
+        self.forum_channel_id: int = int(os.environ.get('FORUM_CHANNEL', '0'))
         if not self.guild_id or not self.forum_channel_id:
             sys.stderr.write("[ERROR]: The GUILD_ID or FORUM_CHANNEL environment " \
                              "variables are unset!\n")
@@ -71,9 +71,9 @@ class Bot(commands.Bot):
     async def add_forum_post(self,
                              title: str,
                              body: str,
-                             forum_channel_id: int = self.forum_channel_id,
                              tags: Optional[Sequence[str]] = None,
                              ) -> discord.Thread:
+
         channel = self.get_channel(self.forum_channel_id)
         if not channel:
            channel = await self.fetch_channel(self.forum_channel_id)
@@ -86,5 +86,5 @@ class Bot(commands.Bot):
             # tags=[],
         )
 
-        return thread
+        return thread.thread
 
