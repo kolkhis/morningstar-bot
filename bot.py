@@ -21,9 +21,10 @@ class Bot(commands.Bot):
         self.prefixes: tuple = PREFIXES
 
         self.guild_id: int = int(os.environ.get('GUILD_ID', '0'))
-        self.forum_channel_id: int = int(os.environ.get('FORUM_CHANNEL', '0'))
+        self.forum_channel_id: int = int(os.environ.get('FORUM_CHANNEL_ID', '0'))
+
         if not self.guild_id or not self.forum_channel_id:
-            sys.stderr.write("[ERROR]: The GUILD_ID or FORUM_CHANNEL environment " \
+            sys.stderr.write("[ERROR]: One of the GUILD_ID or FORUM_CHANNEL_ID environment " \
                              "variables are unset!\n")
             sys.exit(1)
 
