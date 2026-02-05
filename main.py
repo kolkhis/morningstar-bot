@@ -33,7 +33,7 @@ async def addpost(ita: discord.Interaction, title: str, body: str):
         await ita.response.send_message("ERROR: Either a body or title was not provided!")
         return
     post = await bot.add_forum_post(title=title, body=body)
-    await ita.response.send_message(f"Thread was successfully created: {thread.mention}")
+    await ita.response.send_message(f"Thread was successfully created: {post.mention}")
 
 async def main() -> None:
     async with bot:
