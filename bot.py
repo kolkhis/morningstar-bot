@@ -67,6 +67,7 @@ class Bot(commands.Bot):
         self.tree.copy_global_to(guild=guild)
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
+        # self.days_of_giving_post_loop.start()
 
 
     async def add_forum_post(self,
