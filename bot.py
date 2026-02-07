@@ -89,3 +89,7 @@ class Bot(commands.Bot):
 
         return thread.thread
 
+    @tasks.loop(minutes=5)
+    async def days_of_giving_post_loop(self) -> None:
+        pass
+

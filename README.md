@@ -6,7 +6,6 @@ Its primary purpose is to facilitate the events run in the server (mainly
 giveaway events).  
 
 
-
 ## Ideas
 
 - Questions will be read from a json file, with a `asked` key set to the value
