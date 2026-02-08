@@ -10,6 +10,7 @@ PREFIXES = ";", "!", ">", "."
 TIMEZONE_NAME: str = "America/New_York"
 POST_HR: int = 9
 POST_MIN: int = 0
+POST_DAY: str = 'Saturday'
 
 class Bot(commands.Bot):
 
@@ -92,5 +93,6 @@ class Bot(commands.Bot):
 
     @tasks.loop(minutes=5)
     async def days_of_giving_post_loop(self) -> None:
+        """Post once per week on Saturday"""
         pass
 
