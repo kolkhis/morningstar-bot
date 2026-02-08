@@ -5,6 +5,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from typing import Optional, Sequence
+import datetime as dt
 
 PREFIXES = ";", "!", ">", "."
 TIMEZONE_NAME: str = "America/New_York"
@@ -94,5 +95,11 @@ class Bot(commands.Bot):
     @tasks.loop(minutes=5)
     async def days_of_giving_post_loop(self) -> None:
         """Post once per week on Saturday"""
+        now = dt.datetime.now()
+        if now.day == "Saturday":
+            await self.add_forum_post(
+                title=now.strftime('%B %d, %Y'),
+                body="TODO: Add question",
+            )
         pass
 
