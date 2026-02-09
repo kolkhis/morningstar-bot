@@ -9,9 +9,6 @@ import datetime as dt
 
 PREFIXES = ";", "!", ">", "."
 TIMEZONE_NAME: str = "America/New_York"
-POST_HR: int = 9
-POST_MIN: int = 0
-POST_DAY: str = 'Saturday'
 
 class Bot(commands.Bot):
 
@@ -24,6 +21,7 @@ class Bot(commands.Bot):
 
         self.guild_id: int = int(os.environ.get('GUILD_ID', '0'))
         self.forum_channel_id: int = int(os.environ.get('FORUM_CHANNEL_ID', '0'))
+        self.question_file: str = "./questions.json"
 
         if not self.guild_id or not self.forum_channel_id:
             sys.stderr.write("[ERROR]: One of the GUILD_ID or FORUM_CHANNEL_ID environment " \
@@ -91,15 +89,4 @@ class Bot(commands.Bot):
         )
 
         return thread.thread
-
-    @tasks.loop(minutes=5)
-    async def days_of_giving_post_loop(self) -> None:
-        """Post once per week on Saturday"""
-        now = dt.datetime.now()
-        if now.day == "Saturday":
-            await self.add_forum_post(
-                title=now.strftime('%B %d, %Y'),
-                body="TODO: Add question",
-            )
-        pass
 

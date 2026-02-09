@@ -10,6 +10,10 @@ import datetime as dt
 import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
+POST_HOUR: int = 9
+POST_MIN: int = 0
+POST_DAY: str = "Saturday"
+
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 
 if BOT_TOKEN == 'empty':
@@ -51,6 +55,18 @@ async def addpost(ita: discord.Interaction, title: str, body: str):
     post = await bot.add_forum_post(title=title, body=body)
     await ita.response.send_message(f"Thread was successfully created: {post.mention}")
     return
+
+@tasks.loop(minutes=5)
+async def days_of_giving_post_loop() -> None:
+    """Post once per week on Saturday"""
+    now = dt.datetime.now()
+    if now.day == POST_DAY and now.hour == POST_HOUR and now.min == POST_MIN:
+        await bot.add_forum_post(
+            title=now.strftime('%B %d, %Y'),
+            body="TODO: Add question",
+        )
+    pass
+
 
 async def main() -> None:
     async with bot:
