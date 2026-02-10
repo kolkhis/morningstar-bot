@@ -68,6 +68,19 @@ left and selecting "Copy server ID" (requires developer mode to be enabled).
 This variable is used to more quickly sync slash commands with the server.  
 
 
+## JSON Format
+
+The basic structure of a question in the JSON file will be:
+```json
+{
+  "question_text": "new_question",
+  "added_by": "added_by",
+  "date_added": "date_added.strftime('%Y-%m-%d')",
+  "posted": false,
+  "winners": [],
+}
+```
+The date will be rendered as the strftime format displayed.  
 
 ## Resources
 
