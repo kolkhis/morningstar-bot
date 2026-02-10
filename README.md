@@ -73,14 +73,28 @@ This variable is used to more quickly sync slash commands with the server.
 The basic structure of a question in the JSON file will be:
 ```json
 {
-  "question_text": "new_question",
-  "added_by": "added_by",
-  "date_added": "date_added.strftime('%Y-%m-%d')",
-  "posted": false,
-  "winners": [],
+  "posted_questions": [],
+  "unposted_questions": [],
+  "last_post_date": "0000-00-00"
 }
 ```
-The date will be rendered as the strftime format displayed.  
+
+So with a question in the `"unposted_questions"` list:
+```json
+{
+  "unposted_questions": [
+    {
+      "question_text": "new_question",
+      "added_by": "added_by",
+      "date_added": "date_added.strftime('%Y-%m-%d')",
+      "posted": false,
+      "winners": [],
+    }
+    ],
+  "posted_questions": []
+}
+```
+The date will be rendered as the strftime format displayed (`YYYY-MM-DD`).  
 
 ## Resources
 
