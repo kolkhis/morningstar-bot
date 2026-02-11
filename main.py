@@ -5,6 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from bot import Bot
+import json
 
 import datetime as dt
 import locale
@@ -29,6 +30,20 @@ async def title_to_datetime(date: str):
     string and return a datetime object using that format.
     """
     return dt.datetime.strptime(date, '%B %d, %Y')
+
+async def load_last_post_date() -> str | None:
+    """Fetch and return the value of "last_post_date" in the bot's questions file"""
+    if not os.path.exists(bot.question_file):
+        sys.stderr.write(f'[ERROR]: The questions file ({bot.question_file}) was not found!\n')
+        return None
+    with open(bot.question_file, "r", encoding="utf-8") as f:
+        return json.load(f).get("last_post_date")
+
+async def save_last_post_date(date: str) -> None:
+    """Update the value of "last_post_date" in the bot's questions file"""
+    with open(bot.question_file, "r", encoding="utf-8") as f:
+        json.dump({"last_post_date": date}, f)
+
 
 @bot.tree.command(name="test", description="Test command to start")
 async def testcmd(ita: discord.Interaction):
@@ -56,11 +71,32 @@ async def addpost(ita: discord.Interaction, title: str, body: str):
     await ita.response.send_message(f"Thread was successfully created: {post.mention}")
     return
 
+@bot.tree.command(name="addquestion", description="Add a question to the bot's "\
+                  "database. It will be posted for Days of Giving later")
+async def addquestion(ita: discord.Interaction, question: str):
+    # TODO(security): Add user role validation
+    if not question:
+        await ita.response.send_message("ERROR! No question was provided to " \
+                                        "/addquestion")
+    await bot.add_question(new_question=question,
+                           added_by=ita.user.name, 
+                           date_added=dt.datetime.now())
+
 @tasks.loop(minutes=5)
 async def days_of_giving_post_loop() -> None:
     """Post once per week on Saturday"""
     now = dt.datetime.now()
-    if now.day == POST_DAY and now.hour == POST_HOUR and now.min == POST_MIN:
+
+    if now.strftime('%A') == POST_DAY and now.hour >= POST_HOUR and now.minute >= POST_MIN:
+        # It's posting day, check last post date
+        last_post_date = load_last_post_date()
+        if last_post_date is None:
+            sys.stderr.write('[ERROR]: Could not determine last post date\n')
+            return
+        with open(bot.question_file, 'r') as f:
+            pass
+
+            # Check last post date and determine if it's time to add a new one
         await bot.add_forum_post(
             title=now.strftime('%B %d, %Y'),
             body="TODO: Add question",
