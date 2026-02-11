@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from typing import Optional, Sequence
 import datetime as dt
+import json
 
 PREFIXES = ";", "!", ">", "."
 TIMEZONE_NAME: str = "America/New_York"
@@ -89,4 +90,31 @@ class Bot(commands.Bot):
         )
 
         return thread.thread
+    
+    async def fetch_question(self) -> str:
+        pass
+        return ''
+
+    async def add_question(self, new_question: str, added_by: str, date_added: dt.datetime) -> None:
+        if not os.path.exists(self.question_file):
+             sys.stderr.write(f'[ERROR]: Question file {self.question_file} ' \
+                             'could not be found!')
+             return None
+        question_formatted={
+            "question_text": new_question,
+            "added_by": added_by,
+            "date_added": date_added.strftime('%Y-%m-%d'),
+            "posted": False,
+            "date_posted": "0000-00-00",
+            "winners": [],
+        }
+
+        with open(self.question_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        data['questions'].append(question_formatted)
+        with open(self.question_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4)
+
+
 
