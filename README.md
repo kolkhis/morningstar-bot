@@ -5,98 +5,86 @@ This is a custom Discord bot for the Morningstar server.
 Its primary purpose is to facilitate the events run in the server (mainly
 giveaway events).  
 
+## New Bot
 
-## Ideas
+This bot will have:
 
-- Questions will be read from a json file, with a `asked` key set to the value
-  of the date it was asked, and `null` if it has not been asked. Only questions
-  that have not been asked already will be posted (unless no unasked questions
-  remain).  
-    - Possible question format:
-      ```json
-      {
-        "version": 1,
-        "next_index": 0,
-        "questions": [
-          {
-            "id": "q_000001",
-            "text": "What did you learn today?",
-            "added_by": 123456789012345678,
-            "added_at": "2026-02-03T15:55:00-05:00",
-            "active": true,
-            "used_count": 0,
-            "last_used": null,
-            "tags": []
-          }
-        ]
-      }
-      ```
+- a leveling system based on message count
+- a weekly giveaway post that gets created automatically
+- an entry validation system that only accepts users who:
+    - reacted with the right emoji
+    - are level 10
+    - have the @Giveaway and @Morningstar roles
+- a winner picker that chooses:
+    - one random reward from 3 possible rewards
+    - one random valid winner
 
-- Commands (admin):
-    - /addquestion "text"
-    - /listquestions (show like 20~?)
-    - /setposttime (change the schedule)
-    - /removequestion number:42 (maybe?)
-    - /previewnext to show what will be posted tomorrow
+Build with:
 
-- Add tags automatically ("Daily", "Question")
+- `on_message()` event listener to track message count and assign levels
+    - One level per 50 messages, up to level 10
+- `tasks.loop()` to create weekly giveaway posts
+- `on_reaction_add()` event listener to validate entries and pick winners
+- `random.choice()` to select random rewards and winners (after validating entries)
+- Possible SQLite table for users and their message counts/levels 
 
-## Local Setup
-To run this bot locally, set up a Python virtual environment.  
-```bash
-python3 -m venv venv
+## Environment Variables
+- `DISCORD_BOT_TOKEN`: The token for the Discord bot (required)
+- `GIVEAWAY_CHANNEL_ID`: The ID of the channel where giveaway posts will be
+- `GUILD_ID`: The ID of the Discord server (guild) where the bot operates
+
+## Data Model
+### User Data
+Basic SQLite table for users and their message counts/levels:
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    message_count INTEGER NOT NULL DEFAULT 0,
+    level INTEGER NOT NULL DEFAULT 0
+);
 ```
-**Note:** This requires the `python3.10-venv` package on Debian-based systems.
+This stores each user's ID, their total message count, and their current level.
 
-Once the virtual environment is created, set the following lines in the
-`venv/bin/activate` venv activation script.  
-```bash
-export BOT_TOKEN="$(head -1 ~/.config/discord/MORNINGSTAR_TOKEN)"
-export GUILD_ID="1234567890"
-```
-This will safely pull the bot token from a file of your choosing. In this case,
-it is the `MORNINGSTAR_TOKEN` file in my `~/.config/discord` directory. You
-will need to create this directory yourself.  
+The bot will update this table whenever a user sends a message, and it will
+check the user's level when they react to the giveaway post.
 
-The file should contain only one line, the bot token itself. Ensure the file 
-has the proper read permissions for the user account that is running it.  
-
-The `GUILD_ID` can either be hardcoded in the `activate` script, or can be
-pulled from a file in the same fashion as the `BOT_TOKEN` variable. This is
-the Discord server ID, obtained by right clicking on the server name at the top
-left and selecting "Copy server ID" (requires developer mode to be enabled).  
-This variable is used to more quickly sync slash commands with the server.  
-
-
-## JSON Format
-
-The basic structure of a question in the JSON file will be:
-```json
-{
-  "posted_questions": [],
-  "unposted_questions": [],
-  "last_post_date": "0000-00-00"
-}
+### Giveaway Data
+We can also create a table to store giveaway entries:
+```sql
+CREATE TABLE IF NOT EXISTS giveaways (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    guild_id INTEGER NOT NULL,
+    reward TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    ended INTEGER NOT NULL DEFAULT 0
+);
 ```
 
-So with a question in the `"unposted_questions"` list:
-```json
-{
-  "unposted_questions": [
-    {
-      "question_text": "new_question",
-      "added_by": "added_by",
-      "date_added": "date_added.strftime('%Y-%m-%d')",
-      "posted": false,
-      "winners": [],
-    }
-    ],
-  "posted_questions": []
-}
+### Winner Data
+```sql
+CREATE TABLE IF NOT EXISTS winners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    giveaway_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    reward TEXT NOT NULL,
+    selected_at TEXT NOT NULL
+);
 ```
-The date will be rendered as the strftime format displayed (`YYYY-MM-DD`).  
+This table stores the winners of each giveaway, linking them to the giveaway 
+and the reward they won.
 
-## Resources
 
-- [`discord.ext.tasks` Documentation](https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html)
+## Possible Bot Structure
+```txt
+bot/
+├── main.py
+├── db.py
+├── leveling.py
+├── giveaway.py
+└── config.py
+```
+
 
