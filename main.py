@@ -35,6 +35,15 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
                                     f"Arguments received: Hour: {hour}, Minute: {minute}")
     return
 
+@bot.tree.command(name="level", description="Check your current message count and level")
+async def level_cmd(ita: discord.Interaction):
+    row = bot.ensure_user_exists(ita.user.id)
+
+    await ita.response.send_message(
+        f"{ita.user.mention} | Messages: {row['message_count']} | Level: {row['level']}"
+    )
+    return
+
 async def main() -> None:
     async with bot:
         print("Bot starting...")
