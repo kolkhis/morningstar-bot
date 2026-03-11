@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import logging
 import asyncio
 import discord
@@ -43,7 +44,7 @@ LEVEL_THRESHOLDS = {
     9: 450,
     10: 500,
 }
-MESSAGE_COOLDOWN: int = 5  # seconds
+MESSAGE_COOLDOWN: int = 1 # seconds
 def calculate_level(message_count: int) -> int:
     level = 0
     for lvl, threshold in LEVEL_THRESHOLDS.items():
@@ -220,4 +221,13 @@ class Bot(commands.Bot):
             )
 
         await self.process_commands(message)
+
+    def ensure_user_exists(self, user_id: int) -> sqlite3.Row:
+        """Ensure a user exists in the database and return their row."""
+        row = self.get_user_stats(user_id)
+        if row is None:
+            self.create_user_stats(user_id)
+            row = self.get_user_stats(user_id)
+        return row
+
 
