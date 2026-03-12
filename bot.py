@@ -76,10 +76,12 @@ class Bot(commands.Bot):
 
         self.db: sqlite3.Connection = sqlite3.connect("guildbot.db")
         self.db.row_factory = sqlite3.Row
-        self.db_cursor: sqlite3.Cursor = self.db.cursor()
         self.last_message_times: dict[int, float] = {}
 
         self.init_db()
+
+    def get_db_cursor(self) -> sqlite3.Cursor:
+        return self.db.cursor()
 
     def setup_logging(self) -> None:
         """
@@ -112,7 +114,8 @@ class Bot(commands.Bot):
         )
 
     def init_db(self) -> None:
-        self.db_cursor.execute("""
+        cursor = self.get_db_cursor()
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             message_count INTEGER NOT NULL DEFAULT 0,
@@ -135,7 +138,8 @@ class Bot(commands.Bot):
     # Leveling system methods
     def get_user_stats(self, user_id: int) -> Optional[sqlite3.Row]:
         """Return a user's stats row from the database, or None if missing."""
-        self.db_cursor.execute(
+        cursor = self.get_db_cursor()
+        cursor.execute(
             """
             SELECT user_id, message_count, level
             FROM users
@@ -143,11 +147,12 @@ class Bot(commands.Bot):
             """,
             (user_id,)
         )
-        return self.db_cursor.fetchone()
+        return cursor.fetchone()
 
     def create_user_stats(self, user_id: int) -> None:
         """Create a new stats row for a user."""
-        self.db_cursor.execute(
+        cursor = self.get_db_cursor()
+        cursor.execute(
             """
             INSERT INTO users (user_id, message_count, level)
             VALUES (?, 0, 0)
@@ -158,7 +163,8 @@ class Bot(commands.Bot):
 
     def update_user_stats(self, user_id: int, message_count: int, level: int) -> None:
         """Update a user's message count and level."""
-        self.db_cursor.execute(
+        cursor = self.get_db_cursor()
+        cursor.execute(
             """
             UPDATE users
             SET message_count = ?, level = ?
