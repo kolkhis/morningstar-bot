@@ -197,6 +197,33 @@ class Bot(commands.Bot):
         self.update_user_stats(user_id, message_count, new_level)
         return message_count, old_level, new_level
 
+    def get_next_level_info(self, message_count: int, level: int) -> tuple[Optional[int], Optional[int]]:
+        """
+        Return the next level and its threshold.
+
+        Returns:
+            tuple[Optional[int], Optional[int]]:
+                (next_level, next_threshold)
+
+            If the user is already max level, returns (None, None).
+        """
+        if level >= max(LEVEL_THRESHOLDS):
+            return None, None
+
+        next_level = level + 1
+        next_threshold = LEVEL_THRESHOLDS[next_level]
+        return next_level, next_threshold
+
+    def build_progress_bar(self, current: int, total: int, width: int = 10) -> str:
+        """Return a text progress bar for the user's level progress."""
+        if total <= 0:
+            return "[----------] 0%"
+        ratio = current / total
+        filled = int(ratio * width)
+        empty = width - filled
+        percent = int(ratio * 100)
+
+        return f"[{'█' * filled}{'░' * empty}] {percent}%"
 
     async def on_message(self, message: discord.Message) -> None:
         """Track user messages for the leveling system"""
