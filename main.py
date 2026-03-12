@@ -4,7 +4,7 @@ import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from bot import Bot
+from bot import Bot, LEVEL_THRESHOLDS
 import json
 
 import datetime as dt
@@ -37,7 +37,7 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
 
 @bot.tree.command(name="level", description="Check your current message count and level")
 async def level_cmd(ita: discord.Interaction):
-    row = bot.ensure_user_exists(ita.user.id)
+    row = bot.get_user_stats(ita.user.id)
     embed = discord.Embed(
         title="Level Stats",
         description=f"Stats for {ita.user.mention}",
@@ -45,6 +45,20 @@ async def level_cmd(ita: discord.Interaction):
     )
     embed.add_field(name="Level", value=str(row["level"]), inline=True)
     embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
+
+    # # Include progress to next level if not max level
+    level = row["level"]
+    message_count = row["message_count"]
+    if level == 0:
+        next_threshold = LEVEL_THRESHOLDS[1]
+        progress = message_count / next_threshold * 100
+        embed.add_field(name="Progress to next level", value=f"{progress:.2f}%", inline=False)
+    elif row["level"] < max(LEVEL_THRESHOLDS.keys()):
+        next_threshold = LEVEL_THRESHOLDS[level + 1]
+        progress = (message_count - LEVEL_THRESHOLDS[level]) / (next_threshold - LEVEL_THRESHOLDS[level]) * 100
+        # remaining = next_threshold - row["message_count"]
+        embed.add_field(name="Progress to next level", value=f"{progress:.2f}%", inline=False)
+
     if ita.user.display_avatar:
         embed.set_thumbnail(url=ita.user.display_avatar.url)
     embed.set_footer(text="Keep being involved to level up!")
