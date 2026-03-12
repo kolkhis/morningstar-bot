@@ -38,10 +38,17 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
 @bot.tree.command(name="level", description="Check your current message count and level")
 async def level_cmd(ita: discord.Interaction):
     row = bot.ensure_user_exists(ita.user.id)
-
-    await ita.response.send_message(
-        f"{ita.user.mention} | Messages: {row['message_count']} | Level: {row['level']}"
+    embed = discord.Embed(
+        title="Level Stats",
+        description=f"Stats for {ita.user.mention}",
+        color=discord.Color.blurple(),
     )
+    embed.add_field(name="Level", value=str(row["level"]), inline=True)
+    embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
+    if ita.user.display_avatar:
+        embed.set_thumbnail(url=ita.user.display_avatar.url)
+    embed.set_footer(text="Keep being involved to level up!")
+    await ita.response.send_message(embed=embed)
     return
 
 async def main() -> None:
