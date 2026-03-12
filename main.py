@@ -49,15 +49,28 @@ async def level_cmd(ita: discord.Interaction):
     # # Include progress to next level if not max level
     level = row["level"]
     message_count = row["message_count"]
-    if level == 0:
+
+    next_level, next_threshold = bot.get_next_level_info(message_count, level)
+    progress_text: str | None = None
+    progress_bar: str | None = None
+    if next_level is None or next_threshold is None:
+        progress_text = "Max level reached!"
+        progress_bar = "[██████████] 100%"
+    elif level == 0:
         next_threshold = LEVEL_THRESHOLDS[1]
         progress = message_count / next_threshold * 100
-        embed.add_field(name="Progress to next level", value=f"{progress:.2f}%", inline=False)
+        progress_text = f"{progress:.2f}% to level {next_level}"
+        progress_bar = bot.build_progress_bar(message_count, next_threshold)
     elif row["level"] < max(LEVEL_THRESHOLDS.keys()):
         next_threshold = LEVEL_THRESHOLDS[level + 1]
         progress = (message_count - LEVEL_THRESHOLDS[level]) / (next_threshold - LEVEL_THRESHOLDS[level]) * 100
+        progress_text = f"{progress:.2f}% to Level {next_level}"
+        progress_bar = bot.build_progress_bar(message_count - LEVEL_THRESHOLDS[level], next_threshold - LEVEL_THRESHOLDS[level])
         # remaining = next_threshold - row["message_count"]
-        embed.add_field(name="Progress to next level", value=f"{progress:.2f}%", inline=False)
+
+    if progress_text is not None and progress_bar is not None:
+        embed.add_field(name="Progress:", value=progress_text, inline=False)
+        embed.add_field(name="", value=progress_bar, inline=False)
 
     if ita.user.display_avatar:
         embed.set_thumbnail(url=ita.user.display_avatar.url)
