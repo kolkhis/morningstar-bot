@@ -223,7 +223,8 @@ class Bot(commands.Bot):
 
         if new_level != old_level:
             await message.channel.send(
-                f"{message.author.mention} leveled up to **{new_level}**!"
+                f"{message.author.mention} leveled up! You're now level "
+                f"**{new_level}**! (Message count: {message_count})"
             )
 
         await self.process_commands(message)
