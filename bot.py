@@ -80,9 +80,6 @@ class Bot(commands.Bot):
 
         self.init_db()
 
-    def get_db_cursor(self) -> sqlite3.Cursor:
-        return self.db.cursor()
-
     def setup_logging(self) -> None:
         """
         Set up logging for the bot. 
@@ -114,7 +111,7 @@ class Bot(commands.Bot):
         )
 
     def init_db(self) -> None:
-        cursor = self.get_db_cursor()
+        cursor = self.db.cursor()
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -138,7 +135,7 @@ class Bot(commands.Bot):
     # Leveling system methods
     def get_user_stats(self, user_id: int) -> Optional[sqlite3.Row]:
         """Return a user's stats row from the database, or None if missing."""
-        cursor = self.get_db_cursor()
+        cursor = self.db.cursor()
         cursor.execute(
             """
             SELECT user_id, message_count, level
@@ -151,7 +148,7 @@ class Bot(commands.Bot):
 
     def create_user_stats(self, user_id: int) -> None:
         """Create a new stats row for a user."""
-        cursor = self.get_db_cursor()
+        cursor = self.db.cursor()
         cursor.execute(
             """
             INSERT INTO users (user_id, message_count, level)
@@ -163,7 +160,7 @@ class Bot(commands.Bot):
 
     def update_user_stats(self, user_id: int, message_count: int, level: int) -> None:
         """Update a user's message count and level."""
-        cursor = self.get_db_cursor()
+        cursor = self.db.cursor()
         cursor.execute(
             """
             UPDATE users
