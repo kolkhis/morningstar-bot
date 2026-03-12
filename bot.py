@@ -143,7 +143,13 @@ class Bot(commands.Bot):
             """,
             (user_id,)
         )
-        return cursor.fetchone()
+        row = cursor.fetchone()
+        if row is not None:
+            return row
+        if row is None:
+            self.create_user_stats(user_id)
+            row = self.get_user_stats(user_id)
+            return row
 
     def create_user_stats(self, user_id: int) -> None:
         """Create a new stats row for a user."""
@@ -191,13 +197,6 @@ class Bot(commands.Bot):
         self.update_user_stats(user_id, message_count, new_level)
         return message_count, old_level, new_level
 
-    def ensure_user_exists(self, user_id: int) -> sqlite3.Row:
-        """Ensure a user exists in the database and return their row."""
-        row = self.get_user_stats(user_id)
-        if row is None:
-            self.create_user_stats(user_id)
-            row = self.get_user_stats(user_id)
-        return row
 
     async def on_message(self, message: discord.Message) -> None:
         """Track user messages for the leveling system"""
@@ -208,7 +207,6 @@ class Bot(commands.Bot):
             return
 
         content: str = message.content.strip()
-
         # Ignore empty messages
         if not content:
             await self.process_commands(message)
@@ -222,9 +220,7 @@ class Bot(commands.Bot):
             return
 
         self.last_message_times[message.author.id] = now
-
         message_count, old_level, new_level = self.increment_user_message_count(message.author.id)
-
         if new_level != old_level:
             await message.channel.send(
                 f"{message.author.mention} leveled up! You're now level "
