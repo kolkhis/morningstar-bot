@@ -131,7 +131,6 @@ class Bot(commands.Bot):
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
 
-
     # Leveling system methods
     def get_user_stats(self, user_id: int) -> Optional[sqlite3.Row]:
         """Return a user's stats row from the database, or None if missing."""
@@ -192,6 +191,14 @@ class Bot(commands.Bot):
         self.update_user_stats(user_id, message_count, new_level)
         return message_count, old_level, new_level
 
+    def ensure_user_exists(self, user_id: int) -> sqlite3.Row:
+        """Ensure a user exists in the database and return their row."""
+        row = self.get_user_stats(user_id)
+        if row is None:
+            self.create_user_stats(user_id)
+            row = self.get_user_stats(user_id)
+        return row
+
     async def on_message(self, message: discord.Message) -> None:
         """Track user messages for the leveling system"""
         if message.author.bot:
@@ -223,15 +230,5 @@ class Bot(commands.Bot):
                 f"{message.author.mention} leveled up! You're now level "
                 f"**{new_level}**! (Message count: {message_count})"
             )
-
         await self.process_commands(message)
-
-    def ensure_user_exists(self, user_id: int) -> sqlite3.Row:
-        """Ensure a user exists in the database and return their row."""
-        row = self.get_user_stats(user_id)
-        if row is None:
-            self.create_user_stats(user_id)
-            row = self.get_user_stats(user_id)
-        return row
-
 
