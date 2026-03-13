@@ -23,6 +23,7 @@ REWARDS: list = [
 ]
 GIVEAWAY_EMOJI: str = "🎉"
 REQUIRED_ROLE_ID: int = 1481044257916850361 
+BOT_CHANNEL_ID: int = 1482014535966654565
 
 GUILD_ID: int = int(os.getenv('GUILD_ID', '0'))
 GIVEAWAY_CHANNEL_ID: int = int(os.getenv('GIVEAWAY_CHANNEL_ID', '0'))
@@ -249,9 +250,13 @@ class Bot(commands.Bot):
         self.last_message_times[message.author.id] = now
         message_count, old_level, new_level = self.increment_user_message_count(message.author.id)
         if new_level != old_level:
-            await message.channel.send(
+            channel = self.get_channel(BOT_CHANNEL_ID)
+            if channel is None:
+                channel = await self.fetch_channel(BOT_CHANNEL_ID)
+            await channel.send(
                 f"{message.author.mention} leveled up! You're now level "
-                f"**{new_level}**! (Message count: {message_count})"
+                f"**{new_level}**! Use `/level` to check your stats!"
             )
+
         await self.process_commands(message)
 
