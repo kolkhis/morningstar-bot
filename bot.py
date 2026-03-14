@@ -9,13 +9,12 @@ from typing import Optional, Sequence
 import datetime as dt
 import sqlite3
 
-PREFIXES = ";", "!", ">", "."
-
 # A Discord bot to facilitate weekly giveaways for a guild in an MMO. 
 # The bot should have the capability of keeping track of people's levels (e.g., we keep track of their message count and level them up as they talk, max level of 10 at 500 messages)
 # There will be a weekly giveaway post, and users who react with a specific emoji will be entered into the drawing pool **only if** they are level 10.
 # The post will be automated weekly, and will select from a list of 3 rewards randomly and randomly select a winner.
 
+PREFIXES = ";", "!", ">", "."
 REWARDS: list = [
     "$1 Skin",
     "$5 Skin",
@@ -242,7 +241,6 @@ class Bot(commands.Bot):
 
         now: float = time.time()
         last_time: float = self.last_message_times.get(message.author.id, 0.0)
-
         if now - last_time < MESSAGE_COOLDOWN:
             await self.process_commands(message)
             return
