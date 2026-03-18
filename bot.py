@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import logging
+import random
 import asyncio
 import discord
 from discord.ext import commands
@@ -23,6 +24,7 @@ REWARDS: list = [
 GIVEAWAY_EMOJI: str = "🎉"
 REQUIRED_ROLE_ID: int = 1481044257916850361 
 BOT_CHANNEL_ID: int = 1482014535966654565
+REQUIRED_LEVEL: int = 3
 
 GUILD_ID: int = int(os.getenv('GUILD_ID', '0'))
 GIVEAWAY_CHANNEL_ID: int = int(os.getenv('GIVEAWAY_CHANNEL_ID', '0'))
@@ -66,8 +68,10 @@ class Bot(commands.Bot):
         self.setup_logging()
         self.prefixes: tuple = PREFIXES
 
-        self.guild_id: int = int(os.environ.get('GUILD_ID', '0'))
-        self.giveaway_channel_id: int = int(os.environ.get('GIVEAWAY_CHANNEL_ID', '0'))
+        self.guild_id: int = GUILD_ID if GUILD_ID is not None \
+            else int(os.environ.get('GUILD_ID', '0'))
+        self.giveaway_channel_id: int = GIVEAWAY_CHANNEL_ID if GIVEAWAY_CHANNEL_ID is not None \
+            else int(os.environ.get('GIVEAWAY_CHANNEL_ID', '0'))
 
         if not self.guild_id or not self.giveaway_channel_id:
             sys.stderr.write("[ERROR]: One of the GUILD_ID or GIVEAWAY_CHANNEL_ID environment " \
@@ -112,12 +116,26 @@ class Bot(commands.Bot):
 
     def init_db(self) -> None:
         cursor = self.db.cursor()
+        # Add table for leveling system
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             message_count INTEGER NOT NULL DEFAULT 0,
             level INTEGER NOT NULL DEFAULT 0
-        )
+        );
+        """)
+        # Add table for giveaways
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS giveaways (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild_id INTEGER NOT NULL,
+            channel_id INTEGER NOT NULL,
+            message_id INTEGER NOT NULL,
+            reward TEXT NOT NULL,
+            emoji TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            ended INTEGER NOT NULL DEFAULT 0
+        );
         """)
         self.db.commit()
 
@@ -257,4 +275,175 @@ class Bot(commands.Bot):
             )
 
         await self.process_commands(message)
+
+    # Giveaways methods
+    async def get_giveaway_channel(self) -> Optional[discord.TextChannel]:
+        channel = self.get_channel(GIVEAWAY_CHANNEL_ID)
+        if channel is not None:
+            return channel
+        try:
+            channel = await self.fetch_channel(GIVEAWAY_CHANNEL_ID)
+            return channel
+        except discord.NotFound:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m Giveaway channel with ID {GIVEAWAY_CHANNEL_ID} not found.\n")
+            return None
+
+    def create_giveaway_record(self, 
+                                     guild_id: int,
+                                     channel_id: int,
+                                     message_id: int,
+                                     reward: str,
+                                     emoji: str,
+                                     created_at: str,
+                                     ) -> None:
+        cursor = self.db.cursor() 
+        cursor.execute(
+            """
+            INSERT INTO giveaways (
+                guild_id, channel_id, message_id, reward, emoji, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (guild_id, channel_id, message_id, reward, emoji, created_at)
+        )
+        self.db.commit()
+
+    def get_active_giveaway(self) -> Optional[sqlite3.Row]:
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            SELECT id, guild_id, channel_id, message_id, reward, emoji, created_at, ended
+            FROM giveaways
+            WHERE guild_id = ? AND ended = 0
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (self.guild_id,)
+        )
+        row = cursor.fetchone()
+        return row
+
+    def close_giveaway(self, giveaway_id: int) -> None:
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            UPDATE giveaways
+            SET ended = 1
+            WHERE id = ?
+            """,
+            (giveaway_id,)
+        )
+        self.db.commit()
+
+    def is_giveaway_eligible(self, member: discord.Member) -> bool:
+        if member.bot:
+            return False
+
+        has_giveaway_role = any(role.id == REQUIRED_ROLE_ID for role in member.roles)
+        if not has_giveaway_role:
+            return False
+
+        row = self.get_user_stats(member.id)
+        if row is None:
+            return False
+
+        return row["level"] >= REQUIRED_LEVEL
+
+    async def post_giveaway(self) -> Optional[discord.Message]:
+        channel = await self.get_giveaway_channel()
+        if channel is None:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m Giveaway channel with ID \
+                              {GIVEAWAY_CHANNEL_ID} not found. Cannot post giveaway.\n")
+            return None
+
+        active = self.get_active_giveaway()
+        if active is not None:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m An active \
+                               giveaway already exists with message ID {active['message_id']}. \
+                               Cannot post new giveaway until the active one is closed.\n")
+            return None
+        
+        reward = random.choice(REWARDS)
+        content = (
+            f"# WEEKLY GIVEAWAY! 🎉\n\n"
+            f"Reward for this week: **{reward}**\n\n"
+            f"React to this message with {GIVEAWAY_EMOJI} to enter the giveaway!\n"
+            f"## Eligibility requirements:\n\n" 
+            f"- Must have the @{REQUIRED_ROLE_ID} role.  \n"
+            f"- Must be level {REQUIRED_LEVEL} (use `/level` to check your stats in #kolbot).  \n\n"
+            f"Winners will be randomly selected from the pool of eligible entrants who react to this message."
+        )
+
+        msg = await channel.send(content)
+        await msg.add_reaction(GIVEAWAY_EMOJI)
+
+        self.create_giveaway_record(
+            guild_id=self.guild_id,
+            channel_id=channel.id,
+            message_id=msg.id,
+            reward=reward,
+            emoji=GIVEAWAY_EMOJI,
+            created_at=dt.datetime.utcnow().isoformat(),  # TODO(fix): Refactor to non-deprecated method
+        )
+        return msg
+        
+
+    async def draw_giveaway_winner(self) -> Optional[discord.Member]:
+        giveaway = self.get_active_giveaway()
+        if giveaway is None:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m No active giveaway found for guild ID {self.guild_id}. Cannot draw winner.\n")
+            return None
+
+        channel = self.get_channel(giveaway["channel_id"])
+        if channel is None:
+            try:
+                channel = await self.fetch_channel(giveaway["channel_id"])
+            except discord.DiscordException:
+                pass
+                sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m Giveaway channel with ID \
+                                  {giveaway['channel_id']} not found. Cannot draw winner.\n")
+            return None
+
+        if not isinstance(channel, discord.TextChannel):
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m Giveaway channel with ID \
+                              {giveaway['channel_id']} is not a text channel. Cannot draw winner.\n")
+            return None
+    
+        try:
+            giveaway_msg = await channel.fetch_message(giveaway["message_id"])
+        except discord.DiscordException:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m Giveaway message with ID " \
+                             f"{giveaway['message_id']} not found in channel {channel.id}. " \
+                             "Cannot draw winner.\n")
+            return None
+
+        valid_members: list[discord.Member] = []
+        for reaction in giveaway_msg.reactions:
+            if str(reaction.emoji) != giveaway["emoji"]:
+                continue
+
+            async for user in reaction.users():
+                if user.bot:
+                    continue
+                member = channel.guild.get_member(user.id)
+                if member is None:
+                    try:
+                        member = await channel.guild.fetch_member(user.id)
+                    except discord.DiscordException:
+                        sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m User with ID {user.id} " \
+                                         "reacted to giveaway message but is not a member of the guild. " \
+                                         "Skipping user.\n")
+                        continue
+
+                if self.is_giveaway_eligible(member):
+                    valid_members.append(member)
+
+        self.close_giveaway(giveaway["id"])
+        if not valid_members:
+            sys.stderr.write(f"\x1b[31m[GIVEAWAY ERROR]:\x1b[0m No eligible entrants found for giveaway " \
+                             f"with message ID {giveaway['message_id']}. Cannot draw winner.\n")
+            return None
+        winner = random.choice(valid_members)
+        await channel.send(f"Congratulations to {winner.mention}! They won this " \
+                           f"week's giveaway for **{giveaway['reward']}**! 🎉")
+        return winner
 
