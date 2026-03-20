@@ -68,6 +68,9 @@ async def check_level_cmd(ita: discord.Interaction, user_id: str):
 @bot.tree.command(name="level", description="Check your current message count and level")
 async def level_cmd(ita: discord.Interaction):
     row = bot.get_user_stats(ita.user.id)
+    if row is None:
+        await ita.response.send_message(f"User {ita.user.name} not found in the database.", ephemeral=True)
+        return
     embed = discord.Embed(
         title="Level Stats",
         description=f"Stats for {ita.user.mention}",
