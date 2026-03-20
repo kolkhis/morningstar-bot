@@ -35,6 +35,36 @@ async def testparams(ita: discord.Interaction, hour: int, minute: int):
                                     f"Arguments received: Hour: {hour}, Minute: {minute}")
     return
 
+################### USER/LEVEL COMMANDS #################
+@bot.tree.command(name="check_level", description="Check your current message count and level")
+@app_commands.describe(user_id="The ID of the user to check the level for")
+async def check_level_cmd(ita: discord.Interaction, user_id: str):
+    """Check the level of a specific user by their ID."""
+    try:
+        user_id_int = int(user_id)
+    except ValueError:
+        await ita.response.send_message("Invalid user ID. Please provide a numeric ID.", ephemeral=True)
+        return
+
+    row = bot.get_user_stats(user_id_int)
+    if row is None:
+        await ita.response.send_message("User not found in the database.", ephemeral=True)
+        return
+
+    embed = discord.Embed(
+        title="Level Stats",
+        description=f"Stats for <@{user_id_int}>",
+        color=discord.Color.blurple(),
+    )
+    embed.add_field(name="Level", value=str(row["level"]), inline=True)
+    embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
+
+    if ita.user.display_avatar:
+        embed.set_thumbnail(url=ita.user.display_avatar.url)
+    embed.set_footer(text="Keep being involved to level up!")
+    await ita.response.send_message(embed=embed)
+    return
+
 @bot.tree.command(name="level", description="Check your current message count and level")
 async def level_cmd(ita: discord.Interaction):
     row = bot.get_user_stats(ita.user.id)
@@ -77,6 +107,48 @@ async def level_cmd(ita: discord.Interaction):
     embed.set_footer(text="Keep being involved to level up!")
     await ita.response.send_message(embed=embed)
     return
+
+################# GIVEAWAY ADMIN COMMANDS #################
+@bot.tree.command(name="post_giveaway", description="Post a new giveaway")
+async def post_giveaway_cmd(ita: discord.Interaction):
+    if not ita.user.guild_permissions.administrator:
+        await ita.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    msg = await bot.post_giveaway()
+    if msg is None:
+        await ita.response.send_message("Could not post giveaway. There may already be an active one.", ephemeral=True)
+        return
+
+    await ita.response.send_message(f"Giveaway posted in {msg.channel.mention}.", ephemeral=True)
+
+@bot.tree.command(name="draw_giveaway", description="Draw the current giveaway winner")
+async def draw_giveaway_cmd(ita: discord.Interaction):
+    if not ita.user.guild_permissions.administrator:
+        await ita.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    winner = await bot.draw_giveaway_winner()
+    if winner is None:
+        await ita.response.send_message("Giveaway draw completed, but no valid winner was found.", ephemeral=True)
+        return
+
+    await ita.response.send_message(f"Winner drawn: {winner.mention}", ephemeral=True)
+
+@bot.tree.command(name="giveaway_status", description="Show current giveaway status")
+async def giveaway_status_cmd(ita: discord.Interaction):
+    giveaway = bot.get_active_giveaway()
+
+    if giveaway is None:
+        await ita.response.send_message("There is no active giveaway.", ephemeral=True)
+        return
+
+    await ita.response.send_message(
+        f"Active giveaway message ID: `{giveaway['message_id']}`\n"
+        f"Reward: **{giveaway['reward']}**\n"
+        f"Emoji: {giveaway['emoji']}",
+        ephemeral=True
+    )
 
 async def main() -> None:
     async with bot:
