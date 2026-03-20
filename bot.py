@@ -139,6 +139,7 @@ class Bot(commands.Bot):
         """)
         self.db.commit()
 
+    ################ BOT EVENT HANDLERS ################
     async def on_ready(self) -> None:
         print(f"Logged in as {self.user} (id={self.user.id})")
         print(f"Ready and waiting for events...")
@@ -149,7 +150,7 @@ class Bot(commands.Bot):
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
 
-    # Leveling system methods
+    ############## LEVELING SYSTEM METHODS #############
     def get_user_stats(self, user_id: int) -> Optional[sqlite3.Row]:
         """Return a user's stats row from the database, or None if missing."""
         cursor = self.db.cursor()
@@ -233,7 +234,7 @@ class Bot(commands.Bot):
         return next_level, next_threshold
 
     def build_progress_bar(self, current: int, total: int, width: int = 10) -> str:
-        """Return a text progress bar for the user's level progress."""
+        """Return an ASCII text progress bar for the user's level progress."""
         if total <= 0:
             return "[----------] 0%"
         ratio = current / total
@@ -243,8 +244,9 @@ class Bot(commands.Bot):
 
         return f"[{'█' * filled}{'░' * empty}] {percent}%"
 
+    # Bot event handler for tracking messages and leveling up users
     async def on_message(self, message: discord.Message) -> None:
-        """Track user messages for the leveling system"""
+        """Bot event handler, track user messages for the leveling system"""
         if message.author.bot:
             return
 
@@ -276,7 +278,7 @@ class Bot(commands.Bot):
 
         await self.process_commands(message)
 
-    # Giveaways methods
+    ############## GIVEAWAYS METHODS ##############
     async def get_giveaway_channel(self) -> Optional[discord.TextChannel]:
         channel = self.get_channel(GIVEAWAY_CHANNEL_ID)
         if channel is not None:
