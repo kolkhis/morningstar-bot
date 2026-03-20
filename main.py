@@ -80,7 +80,7 @@ async def level_cmd(ita: discord.Interaction):
     level = row["level"]
     message_count = row["message_count"]
 
-    next_level, next_threshold = bot.get_next_level_info(message_count, level)
+    next_level, next_threshold = bot.get_next_level_info(level)
     progress_text: str | None = None
     progress_bar: str | None = None
     if next_level is None or next_threshold is None:

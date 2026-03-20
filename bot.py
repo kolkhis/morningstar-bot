@@ -216,7 +216,7 @@ class Bot(commands.Bot):
         self.update_user_stats(user_id, message_count, new_level)
         return message_count, old_level, new_level
 
-    def get_next_level_info(self, message_count: int, level: int) -> tuple[Optional[int], Optional[int]]:
+    def get_next_level_info(self, level: int) -> tuple[Optional[int], Optional[int]]:
         """
         Return the next level and its threshold.
 
