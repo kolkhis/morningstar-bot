@@ -162,11 +162,17 @@ class Bot(commands.Bot):
                 return
         embed = discord.Embed(
             title=f"Member Left Server",
-            description=f"{member} has left the server.",
+            description=f"{member.name} has left the server.",
             color=discord.Color.red(),
         )
         embed.set_thumbnail(url=member.display_avatar.url if member.display_avatar else None)
         embed.add_field(name="Date", value=dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), inline=False)
+        embed.add_field(name="User Details",
+                        value=\
+                        f"Name: {member.name}\n"\
+                        f"Nickname: {member.nick}"\
+                        f"ID: {member.id}\n",
+                        inline=False)
         embed.add_field(name="Action", value="Removing their stats from the database.", inline=False)
         await channel.send(embed=embed)
         cursor = self.db.cursor()
