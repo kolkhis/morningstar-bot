@@ -23,7 +23,8 @@ REWARDS: list = [
 ]
 GIVEAWAY_EMOJI: str = "🎉"
 REQUIRED_ROLE_ID: int = 1481044257916850361 
-BOT_CHANNEL_ID: int = 1482014535966654565
+BOT_CHANNEL_ID: int = 1482014535966654565  # The `#kolbot` channel
+BOT_ADMIN_CHANNEL_ID: int = int(os.getenv('BOT_ADMIN_CHANNEL_ID', '0'))
 REQUIRED_LEVEL: int = 3
 
 GUILD_ID: int = int(os.getenv('GUILD_ID', '0'))
@@ -149,6 +150,34 @@ class Bot(commands.Bot):
         self.tree.copy_global_to(guild=guild)
         await self.tree.sync(guild=guild)
         print(f"Slash commands synced to guild {guild}")
+
+    async def on_member_remove(self, member: discord.Member) -> None:
+        """Bot event handler, remove user stats when they leave the guild."""
+        channel = self.get_channel(BOT_ADMIN_CHANNEL_ID)  # TODO(fix): Use #kolbot-admin channel
+        if channel is None:
+            try:
+                channel = await self.fetch_channel(BOT_ADMIN_CHANNEL_ID)
+            except discord.DiscordException:
+                sys.stderr.write(f"\x1b[31m[ERROR]:\x1b[0m Bot Admin channel with ID {BOT_ADMIN_CHANNEL_ID} not found. Cannot log member removal.\n")
+                return
+        embed = discord.Embed(
+            title=f"Member Left Server",
+            description=f"{member} has left the server.",
+            color=discord.Color.red(),
+        )
+        embed.set_thumbnail(url=member.display_avatar.url if member.display_avatar else None)
+        embed.add_field(name="Date", value=dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), inline=False)
+        embed.add_field(name="Action", value="Removing their stats from the database.", inline=False)
+        await channel.send(embed=embed)
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            DELETE FROM users
+            WHERE user_id = ?
+            """,
+            (member.id,)
+        )
+        self.db.commit()
 
     ############## LEVELING SYSTEM METHODS #############
     def get_user_stats(self, user_id: int) -> Optional[sqlite3.Row]:
