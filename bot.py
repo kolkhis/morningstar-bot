@@ -153,7 +153,7 @@ class Bot(commands.Bot):
 
     async def on_member_remove(self, member: discord.Member) -> None:
         """Bot event handler, remove user stats when they leave the guild."""
-        channel = self.get_channel(BOT_ADMIN_CHANNEL_ID)  # TODO(fix): Use #kolbot-admin channel
+        channel = self.get_channel(BOT_ADMIN_CHANNEL_ID)
         if channel is None:
             try:
                 channel = await self.fetch_channel(BOT_ADMIN_CHANNEL_ID)
