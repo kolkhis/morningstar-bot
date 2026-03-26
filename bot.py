@@ -153,6 +153,7 @@ class Bot(commands.Bot):
 
     async def on_member_remove(self, member: discord.Member) -> None:
         """Bot event handler, remove user stats when they leave the guild."""
+        print(f"Member {member} has left the server, removing their stats from the database.")
         channel = self.get_channel(BOT_ADMIN_CHANNEL_ID)
         if channel is None:
             try:
