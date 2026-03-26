@@ -11,9 +11,15 @@ import datetime as dt
 import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
-POST_HOUR: int = 9
-POST_MIN: int = 0
-POST_DAY: str = "Saturday"
+GUILD_EVENTS: dict[str, str] = {
+    "Guild Party": "15:00",
+    "Breaking Army": "14:00",
+    "Showdown": "14:30"
+}
+
+# POST_HOUR: int = 9
+# POST_MIN: int = 0
+# POST_DAY: str = "Saturday"
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 
@@ -112,6 +118,9 @@ async def level_cmd(ita: discord.Interaction):
     return
 
 ################# GIVEAWAY ADMIN COMMANDS #################
+# TODO(feat): Add command to end giveaway early
+# TODO(feat): Add command to reroll giveaway winner
+# TODO(feat): Add command to see past giveaways and winners
 @bot.tree.command(name="post_giveaway", description="Post a new giveaway")
 async def post_giveaway_cmd(ita: discord.Interaction):
     if not ita.user.guild_permissions.administrator:
@@ -152,6 +161,28 @@ async def giveaway_status_cmd(ita: discord.Interaction):
         f"Emoji: {giveaway['emoji']}",
         ephemeral=True
     )
+
+###### GUILD EVENT NOTIFICATIONS ######
+# Add loop to send notification for guild party, breaking army, and showdown
+@tasks.loop(minutes=1)
+async def event_notification_loop():
+    guild_notification_channel = bot.get_channel(1467567050611495058)
+    if guild_notification_channel is None:
+        guild_notification_channel = bot.fetch_channel(1467567050611495058)
+
+    now = dt.datetime.now()
+
+    for event_name, event_time_str in GUILD_EVENTS.items():
+        event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
+        if event_name == "Guild Party" and now.time().hour == event_time.hour and now.time().minute == event_time.minute:
+            guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+        if event_name in ["Breaking Army", "Showdown"] \
+            and now.strftime("%A") in ["Friday", "Saturday"] \
+            and now.time().hour == event_time.hour \
+            and now.time().minute == event_time.minute:
+            guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+    return
+
 
 async def main() -> None:
     async with bot:
