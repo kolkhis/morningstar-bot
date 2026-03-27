@@ -165,28 +165,41 @@ async def giveaway_status_cmd(ita: discord.Interaction):
 ###### GUILD EVENT NOTIFICATIONS ######
 # Add loop to send notification for guild party, breaking army, and showdown
 @tasks.loop(minutes=1)
-async def event_notification_loop():
+async def guild_event_notification_loop():
     guild_notification_channel = bot.get_channel(1467567050611495058)
     if guild_notification_channel is None:
-        guild_notification_channel = bot.fetch_channel(1467567050611495058)
+        guild_notification_channel = await bot.fetch_channel(1467567050611495058)
 
     now = dt.datetime.now()
 
     for event_name, event_time_str in GUILD_EVENTS.items():
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
-        if event_name == "Guild Party" and now.time().hour == event_time.hour and now.time().minute == event_time.minute:
-            guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
-        if event_name in ["Breaking Army", "Showdown"] \
+        if (
+        event_name == "Guild Party" 
+        and now.time().hour == event_time.hour 
+        and now.time().minute == event_time.minute
+        ):
+            await guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+        elif (
+            event_name in ["Breaking Army", "Showdown"] \
             and now.strftime("%A") in ["Friday", "Saturday"] \
             and now.time().hour == event_time.hour \
-            and now.time().minute == event_time.minute:
-            guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+            and now.time().minute == event_time.minute
+        ):
+            await guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
     return
+
+@guild_event_notification_loop.before_loop
+async def before_event_notification_loop():
+    await bot.wait_until_ready()
 
 
 async def main() -> None:
     async with bot:
         print("Bot starting...")
+        if not guild_event_notification_loop.is_running():
+            guild_event_notification_loop.start()
+
         await bot.start(BOT_TOKEN)
         print("Bot is done.")
         return
