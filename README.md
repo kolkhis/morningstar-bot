@@ -53,15 +53,19 @@ We can also create a table to store giveaway entries:
 ```sql
 CREATE TABLE IF NOT EXISTS giveaways (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    message_id INTEGER NOT NULL,
-    channel_id INTEGER NOT NULL,
     guild_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    message_id INTEGER NOT NULL,
     reward TEXT NOT NULL,
     emoji TEXT NOT NULL,
     created_at TEXT NOT NULL,
     ended INTEGER NOT NULL DEFAULT 0
 );
 ```
+This table stores info about each giveaways. Includes guild ID (server ID),
+channel ID, and message ID to link it to the giveaway post.  
+Stores the emoji used for entry validation, the reward that was chosen for the
+giveaway, and a flag to check if giveaway has ended (0 for active, 1 for ended).
 
 ### Winner Data
 ```sql
@@ -86,5 +90,11 @@ bot/
 ├── giveaway.py
 └── config.py
 ```
+
+
+## TODO
+Refactor the `created_at` row entries in the giveaways table to use a
+non-deprecated function for getting current time.  
+Currently using `dt.datetime.utcnow().isoformat()` which is deprecated.  
 
 
