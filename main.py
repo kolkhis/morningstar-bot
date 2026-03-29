@@ -16,6 +16,7 @@ GUILD_EVENTS: dict[str, str] = {
     "Breaking Army": "14:00",
     "Showdown": "14:30"
 }
+MORNINSTAR_ROLE_ID:int = 1467564680401785090
 
 # POST_HOUR: int = 9
 # POST_MIN: int = 0
@@ -166,33 +167,49 @@ async def giveaway_status_cmd(ita: discord.Interaction):
 # Add loop to send notification for guild party, breaking army, and showdown
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
-    guild_notification_channel = bot.get_channel(1467567050611495058)
+    guild_notification_channel = bot.get_channel(1467566735535378432)
     if guild_notification_channel is None:
-        guild_notification_channel = await bot.fetch_channel(1467567050611495058)
+        guild_notification_channel = await bot.fetch_channel(1467566735535378432)
 
     now = dt.datetime.now()
-
+    timestamp = discord.utils.format_dt(discord.utils.utcnow(), style="t")
+    
     for event_name, event_time_str in GUILD_EVENTS.items():
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
         if (
-        event_name == "Guild Party" 
-        and now.time().hour == event_time.hour 
-        and now.time().minute == event_time.minute
+            event_name == "Guild Party" 
+            and now.time().hour == event_time.hour 
+            and now.time().minute == event_time.minute
         ):
-            await guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+            await guild_notification_channel.send(f"<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready! (daily at {timestamp}, your local time)")
         elif (
             event_name in ["Breaking Army", "Showdown"] \
             and now.strftime("%A") in ["Friday", "Saturday"] \
             and now.time().hour == event_time.hour \
             and now.time().minute == event_time.minute
         ):
-            await guild_notification_channel.send(f"@Morningstar Reminder: **{event_name}** is starting! Get ready!")
+        # 1467564680401785090
+            if event_name == "Breaking Army":
+                await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
+BA is every Friday and Saturday at {timestamp}, your local time.
+
+To participate:
+Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!"""
+                )
+            elif event_name == "Showdown":
+                await guild_notification_channel.send(f"""{msg}
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
+Showdown is every Friday and Saturday at {timestamp}, your local time.
+
+To participate:
+Go to the guild base, turn left and find the arena right outside."""
+                )
     return
 
 @guild_event_notification_loop.before_loop
 async def before_event_notification_loop():
     await bot.wait_until_ready()
-
 
 async def main() -> None:
     async with bot:
