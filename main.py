@@ -16,31 +16,16 @@ GUILD_EVENTS: dict[str, str] = {
     "Breaking Army": "14:00",
     "Showdown": "14:30"
 }
-MORNINSTAR_ROLE_ID:int = 1467564680401785090
 
-# POST_HOUR: int = 9
-# POST_MIN: int = 0
-# POST_DAY: str = "Saturday"
+MORNINSTAR_ROLE_ID:int = 1467564680401785090
+GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
-
 if BOT_TOKEN == 'empty':
     sys.stderr.write('[ERROR]: Bot token environment variable is unset! Set in venv/bin/activate\n')
     sys.exit(1)
 
 bot: Bot = Bot()
-
-@bot.tree.command(name="test", description="Test command to start")
-async def testcmd(ita: discord.Interaction):
-    await ita.response.send_message("Test command successfully executed")
-    return
-
-@bot.tree.command(name="testparams", description="Test command with parameter descriptions")
-@app_commands.describe(hour="0-23", minute="0-59")
-async def testparams(ita: discord.Interaction, hour: int, minute: int):
-    await ita.response.send_message("Test command successfully executed. "\
-                                    f"Arguments received: Hour: {hour}, Minute: {minute}")
-    return
 
 ################### USER/LEVEL COMMANDS #################
 @bot.tree.command(name="check_level", description="Check your current message count and level")
@@ -167,9 +152,9 @@ async def giveaway_status_cmd(ita: discord.Interaction):
 # Add loop to send notification for guild party, breaking army, and showdown
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
-    guild_notification_channel = bot.get_channel(1467566735535378432)
+    guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
     if guild_notification_channel is None:
-        guild_notification_channel = await bot.fetch_channel(1467566735535378432)
+        guild_notification_channel = await bot.fetch_channel(GUILD_NOTIFICATION_CHANNEL_ID)
 
     now = dt.datetime.now()
     timestamp = discord.utils.format_dt(discord.utils.utcnow(), style="t")
