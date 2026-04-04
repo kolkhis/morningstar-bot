@@ -171,7 +171,8 @@ class Bot(commands.Bot):
         embed.add_field(name="User Details",
                         value=\
                         f"Name: {member.name}\n"\
-                        f"Nickname: {member.nick}"\
+                        f"Display Name: {member.display_name}\n"\
+                        f"Server Nickname: {member.nick}\n"\
                         f"ID: {member.id}\n",
                         inline=False)
         embed.add_field(name="Action", value="Removing their stats from the database.", inline=False)
