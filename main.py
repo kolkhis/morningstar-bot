@@ -149,6 +149,27 @@ async def giveaway_status_cmd(ita: discord.Interaction):
     )
 
 ###### GUILD EVENT NOTIFICATIONS ######
+# Command to display a Discord timestamp for times of the guild events
+@bot.tree.command(name="guild_events", description="Show the schedule for guild events")
+async def guild_events_cmd(ita: discord.Interaction):
+    embed = discord.Embed(
+        title="Guild Event Schedule",
+        description="Here are the scheduled times for our regular guild events:",
+        color=discord.Color.green(),
+    )
+    for event_name, event_time_str in GUILD_EVENTS.items():
+        event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
+        timestamp = discord.utils.format_dt(
+            dt.datetime.combine(dt.date.today(), event_time), style="t"
+        )
+        if event_name == "Guild Party":
+            embed.add_field(name=event_name, value=f"Daily at {timestamp} (your local time)", inline=False)
+        else:
+            embed.add_field(name=event_name, value=f"Every Friday and Saturday at {timestamp} (your local time)", inline=False)
+
+    await ita.response.send_message(embed=embed)
+    return
+
 # Add loop to send notification for guild party, breaking army, and showdown
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
