@@ -14,7 +14,8 @@ locale.setlocale(locale.LC_TIME, 'C') # use English month names
 GUILD_EVENTS: dict[str, str] = {
     "Guild Party": "15:00",
     "Breaking Army": "14:00",
-    "Showdown": "14:30"
+    "Showdown": "14:30",
+    "Guild War": "16:30",
 }
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
@@ -164,6 +165,8 @@ async def guild_events_cmd(ita: discord.Interaction):
         )
         if event_name == "Guild Party":
             embed.add_field(name=event_name, value=f"Daily at {timestamp} (your local time)", inline=False)
+        elif event_name == "Guild War":
+            embed.add_field(name=event_name, value=f"Every Saturday and Sunday at {timestamp} (your local time)", inline=False)
         else:
             embed.add_field(name=event_name, value=f"Every Friday and Saturday at {timestamp} (your local time)", inline=False)
 
@@ -211,6 +214,16 @@ Showdown is every Friday and Saturday at {timestamp}, your local time.
 To participate:
 Go to the guild base, turn left and find the arena right outside."""
                 )
+        elif event_name == "Guild War":
+            if (
+                now.strftime("%A") == "Saturday" or now.strftime("%A") == "Sunday"
+                and now.time().hour == event_time.hour
+                and now.time().minute == event_time.minute
+                ):
+                    await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
+Schedule for Guild War is every Saturday and Sunday at {timestamp}.
+Get ready to defend our honor!""")
     return
 
 @guild_event_notification_loop.before_loop
