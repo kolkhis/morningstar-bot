@@ -190,14 +190,21 @@ async def guild_event_notification_loop():
             and now.time().hour == event_time.hour 
             and now.time().minute == event_time.minute
         ):
-            await guild_notification_channel.send(f"<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready! (daily at {timestamp}, your local time)")
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready!
+Guild party is daily at {timestamp}, your local time.
+
+To participate:
+Go to the guild base (open guild menu and hit space) and press K to inject aura (it's free and extends party duration!). 
+""")
+
         elif (
             event_name in ["Breaking Army", "Showdown"] \
             and now.strftime("%A") in ["Friday", "Saturday"] \
             and now.time().hour == event_time.hour \
             and now.time().minute == event_time.minute
         ):
-        # 1467564680401785090
+
             if event_name == "Breaking Army":
                 await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
@@ -206,6 +213,7 @@ BA is every Friday and Saturday at {timestamp}, your local time.
 To participate:
 Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!"""
                 )
+
             elif event_name == "Showdown":
                 await guild_notification_channel.send(f"""{msg}
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
@@ -214,6 +222,7 @@ Showdown is every Friday and Saturday at {timestamp}, your local time.
 To participate:
 Go to the guild base, turn left and find the arena right outside."""
                 )
+
         elif event_name == "Guild War":
             if (
                 now.strftime("%A") == "Saturday" or now.strftime("%A") == "Sunday"
