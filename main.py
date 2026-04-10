@@ -215,7 +215,7 @@ Go to the guild menu, select "Events", find Breaking Army and select it to telep
                 )
 
             elif event_name == "Showdown":
-                await guild_notification_channel.send(f"""{msg}
+                await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
 Showdown is every Friday and Saturday at {timestamp}, your local time.
 
