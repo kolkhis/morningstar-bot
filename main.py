@@ -173,7 +173,6 @@ async def guild_events_cmd(ita: discord.Interaction):
     await ita.response.send_message(embed=embed)
     return
 
-# Add loop to send notification for guild party, breaking army, and showdown
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
     guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
@@ -220,19 +219,19 @@ Go to the guild menu, select "Events", find Breaking Army and select it to telep
 Showdown is every Friday and Saturday at {timestamp}, your local time.
 
 To participate:
-Go to the guild base, turn left and find the arena right outside."""
-                )
+Go to the guild base, turn left and find the arena right outside.""")
 
-        elif event_name == "Guild War":
-            if (
-                now.strftime("%A") == "Saturday" or now.strftime("%A") == "Sunday"
-                and now.time().hour == event_time.hour
-                and now.time().minute == event_time.minute
-                ):
-                    await guild_notification_channel.send(f"""
+        elif (
+            event_name == "Guild War" \
+            and now.strftime("%A") in ["Saturday", "Sunday"] \
+            and now.time().hour == event_time.hour \
+            and now.time().minute == event_time.minute
+        ):
+            await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
 Schedule for Guild War is every Saturday and Sunday at {timestamp}.
-Get ready to defend our honor!""")
+Get ready to defend our honor!
+            """)
     return
 
 @guild_event_notification_loop.before_loop
