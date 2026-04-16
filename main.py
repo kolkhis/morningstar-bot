@@ -16,6 +16,7 @@ GUILD_EVENTS: dict[str, str] = {
     "Breaking Army": "14:00",
     "Showdown": "14:30",
     "Guild War": "15:30",
+    "Guild Hero Realm": "13:30",
 }
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
