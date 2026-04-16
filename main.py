@@ -233,6 +233,22 @@ Go to the guild base, turn left and find the arena right outside.""")
 Schedule for Guild War is every Saturday and Sunday at {timestamp}.
 Get ready to defend our honor!
             """)
+
+        elif (
+            event_name == "Guild Hero Realm" \
+            and now.strftime("%A") == "Saturday"
+            and now.time().hour == event_time.hour \
+            and now.time().minute == event_time.minute
+            ):
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
+Schedule for Guild Hero Realm is every Saturday at {timestamp}.
+To participate:
+Log in an send a message in the guild chat for an invite!
+""")
+        else:
+            print(f"No notification for {event_name} at {timestamp}. Current time: {now.time().strftime('%H:%M')}")
+            continue
     return
 
 @guild_event_notification_loop.before_loop
