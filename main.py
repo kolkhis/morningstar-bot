@@ -16,7 +16,7 @@ GUILD_EVENTS: dict[str, str] = {
     "Breaking Army": "14:00",
     "Showdown": "14:30",
     "Guild War": "15:30",
-    "Guild Hero Realm": "13:30",
+    "Guild Hero Realm": "14:30",
 }
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
@@ -168,7 +168,9 @@ async def guild_events_cmd(ita: discord.Interaction):
             embed.add_field(name=event_name, value=f"Daily at {timestamp} (your local time)", inline=False)
         elif event_name == "Guild War":
             embed.add_field(name=event_name, value=f"Every Saturday and Sunday at {timestamp} (your local time)", inline=False)
-        else:
+        elif event_name == "Guild Hero Realm":
+            embed.add_field(name=event_name, value=f"Every Saturday at {timestamp} (your local time)", inline=False)
+        elif event_name in ["Breaking Army", "Showdown"]:
             embed.add_field(name=event_name, value=f"Every Friday and Saturday at {timestamp} (your local time)", inline=False)
 
     await ita.response.send_message(embed=embed)
@@ -246,9 +248,6 @@ Schedule for Guild Hero Realm is every Saturday at {timestamp}.
 To participate:
 Log in an send a message in the guild chat for an invite!
 """)
-        else:
-            print(f"No notification for {event_name} at {timestamp}. Current time: {now.time().strftime('%H:%M')}")
-            continue
     return
 
 @guild_event_notification_loop.before_loop
