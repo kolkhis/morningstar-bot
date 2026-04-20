@@ -308,11 +308,16 @@ class Bot(commands.Bot):
             channel = self.get_channel(BOT_CHANNEL_ID)
             if channel is None:
                 channel = await self.fetch_channel(BOT_CHANNEL_ID)
-            await channel.send(
-                f"{message.author.mention} leveled up! You're now level "
-                f"**{new_level}**! Use `/level` to check your stats!"
+            embed = discord.Embed(
+                title=f"Level Up! {message.author.name} is now level {new_level}",
+                description=f"{message.author.mention} leveled up to level {new_level}! They have sent {message_count} messages.",
+                color=discord.Color.green(),
             )
-
+            embed.set_thumbnail(url=message.author.display_avatar.url if message.author.display_avatar else None)
+            await channel.send(
+                content=f"{message.author.mention} leveled up!",
+                embed=embed,
+            )
         await self.process_commands(message)
 
     ############## GIVEAWAYS METHODS ##############
