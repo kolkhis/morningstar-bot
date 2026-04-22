@@ -19,6 +19,37 @@ GUILD_EVENTS: dict[str, str] = {
     "Guild Hero Realm": "14:30",
 }
 
+# Monday, Tue, Wed, Thursday guild party will be at 19:00
+# Friday, Breaking Army will be at 19:00
+# Friday, Showdown will be at 20:00
+# TODO(refactor): Use dict containing weekday and times for specific events
+# GUILD_EVENTS: dict[str, dict[str, str]] = {
+#     "Guild Party": {
+#         "Monday": "19:00",
+#         "Tuesday": "19:00",
+#         "Wednesday": "19:00",
+#         "Thursday": "19:00",
+#         "Friday": "15:00",
+#         "Saturday": "15:00",
+#         "Sunday": "15:00",
+#         },
+#     "Breaking Army": {
+#         "Friday": "20:00",
+#         "Saturday": "14:00",
+#         },
+#     "Showdown": {
+#         "Friday": "19:00",
+#         "Saturday": "14:30",
+#         },
+#     "Guild War": {
+#         "Saturday": "15:30",
+#         "Sunday": "15:30"
+#         },
+#     "Guild Hero Realm": {
+#         "Saturday": "14:30"
+#         },
+# }
+
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
 
