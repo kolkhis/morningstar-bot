@@ -11,44 +11,45 @@ import datetime as dt
 import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
-GUILD_EVENTS: dict[str, str] = {
-    "Guild Party": "15:00",
-    "Breaking Army": "14:00",
-    "Showdown": "14:30",
-    "Guild War": "15:30",
-    "Guild Hero Realm": "14:30",
-}
+# GUILD_EVENTS: dict[str, str] = {
+#     "Guild Party": "15:00",
+#     "Breaking Army": "14:00",
+#     "Showdown": "14:30",
+#     "Guild War": "15:30",
+#     "Guild Hero Realm": "14:30",
+# }
 
 # Monday, Tue, Wed, Thursday guild party will be at 19:00
 # Friday, Breaking Army will be at 19:00
 # Friday, Showdown will be at 20:00
 # TODO(refactor): Use dict containing weekday and times for specific events
-# GUILD_EVENTS: dict[str, dict[str, str]] = {
-#     "Guild Party": {
-#         "Monday": "19:00",
-#         "Tuesday": "19:00",
-#         "Wednesday": "19:00",
-#         "Thursday": "19:00",
-#         "Friday": "15:00",
-#         "Saturday": "15:00",
-#         "Sunday": "15:00",
-#         },
-#     "Breaking Army": {
-#         "Friday": "20:00",
-#         "Saturday": "14:00",
-#         },
-#     "Showdown": {
-#         "Friday": "19:00",
-#         "Saturday": "14:30",
-#         },
-#     "Guild War": {
-#         "Saturday": "15:30",
-#         "Sunday": "15:30"
-#         },
-#     "Guild Hero Realm": {
-#         "Saturday": "14:30"
-#         },
-# }
+GUILD_EVENTS: dict[str, dict[str, str]] = {
+    "Guild Party": {
+        "Monday": "19:00",
+        "Tuesday": "19:00",
+        "Wednesday": "19:00",
+        "Thursday": "19:00",
+        "Friday": "15:00",
+        "Saturday": "15:00",
+        "Sunday": "15:00",
+        },
+    "Breaking Army": {
+        "Friday": "20:00",
+        "Saturday": "14:00",
+        },
+    "Showdown": {
+        "Friday": "19:00",
+        "Saturday": "14:30",
+        },
+    "Guild War": {
+        "Saturday": "15:30",
+        "Sunday": "15:30"
+        },
+    "Guild Hero Realm": {
+        "Saturday": "14:30"
+        },
+}
+
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
@@ -190,20 +191,28 @@ async def guild_events_cmd(ita: discord.Interaction):
         description="Here are the scheduled times for our regular guild events:",
         color=discord.Color.green(),
     )
-    for event_name, event_time_str in GUILD_EVENTS.items():
-        event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
-        timestamp = discord.utils.format_dt(
-            dt.datetime.combine(dt.date.today(), event_time), style="t"
-        )
-        if event_name == "Guild Party":
-            embed.add_field(name=event_name, value=f"Daily at {timestamp} (your local time)", inline=False)
-        elif event_name == "Guild War":
-            embed.add_field(name=event_name, value=f"Every Saturday and Sunday at {timestamp} (your local time)", inline=False)
-        elif event_name == "Guild Hero Realm":
-            embed.add_field(name=event_name, value=f"Every Saturday at {timestamp} (your local time)", inline=False)
-        elif event_name in ["Breaking Army", "Showdown"]:
-            embed.add_field(name=event_name, value=f"Every Friday and Saturday at {timestamp} (your local time)", inline=False)
 
+    today = dt.date.today()
+    for event_name, schedule in GUILD_EVENTS.items():
+        lines: list[str] = []
+
+        for day, time_str in schedule.items():
+            event_time = dt.datetime.strptime(time_str, "%H:%M").time()
+            # Find the next occurrence of this weekday
+            target_weekday = dt.datetime.strptime(day, "%A").weekday()
+            days_ahead = (target_weekday - today.weekday()) % 7
+            target_date = today + dt.timedelta(days=days_ahead)
+            event_dt = dt.datetime.combine(target_date, event_time)
+            timestamp = discord.utils.format_dt(event_dt, style="t")
+            lines.append(f"**{day}** at {timestamp}")
+
+        # Join all day/time entries for this event
+        value = "\n".join(lines)
+        embed.add_field(
+            name=event_name,
+            value=f"{value}\n*(your local time)*",
+            inline=False,
+        )
     await ita.response.send_message(embed=embed)
     return
 
@@ -213,71 +222,68 @@ async def guild_event_notification_loop():
     if guild_notification_channel is None:
         guild_notification_channel = await bot.fetch_channel(GUILD_NOTIFICATION_CHANNEL_ID)
 
+    if not isinstance(guild_notification_channel, discord.TextChannel):
+        return
+
     now = dt.datetime.now()
-    timestamp = discord.utils.format_dt(discord.utils.utcnow(), style="t")
-    
-    for event_name, event_time_str in GUILD_EVENTS.items():
+    current_day = now.strftime("%A")
+
+    for event_name, schedule in GUILD_EVENTS.items():
+        event_time_str = schedule.get(current_day)
+        if event_time_str is None:
+            continue
+
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
-        if (
-            event_name == "Guild Party" 
-            and now.time().hour == event_time.hour 
-            and now.time().minute == event_time.minute
-        ):
+
+        if now.hour != event_time.hour or now.minute != event_time.minute:
+            continue
+
+        timestamp = discord.utils.format_dt(
+            dt.datetime.combine(dt.date.today(), event_time),
+            style="t",
+        )
+
+        if event_name == "Guild Party":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready!
-Guild party is daily at {timestamp}, your local time.
+Guild Party is today at {timestamp}, your local time.
 
 To participate:
-Go to the guild base (open guild menu and hit space) and press K to inject aura (it's free and extends party duration!). 
+Go to the guild base (open guild menu and hit space) and press K to inject aura (it's free and extends party duration!).
 """)
 
-        elif (
-            event_name in ["Breaking Army", "Showdown"] \
-            and now.strftime("%A") in ["Friday", "Saturday"] \
-            and now.time().hour == event_time.hour \
-            and now.time().minute == event_time.minute
-        ):
-
-            if event_name == "Breaking Army":
-                await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
-BA is every Friday and Saturday at {timestamp}, your local time.
-
-To participate:
-Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!"""
-                )
-
-            elif event_name == "Showdown":
-                await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Schedule for
-Showdown is every Friday and Saturday at {timestamp}, your local time.
-
-To participate:
-Go to the guild base, turn left and find the arena right outside.""")
-
-        elif (
-            event_name == "Guild War" \
-            and now.strftime("%A") in ["Saturday", "Sunday"] \
-            and now.time().hour == event_time.hour \
-            and now.time().minute == event_time.minute
-        ):
+        elif event_name == "Breaking Army":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Schedule for Guild War is every Saturday and Sunday at {timestamp}.
+Breaking Army is today at {timestamp}, your local time.
+
+To participate:
+Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!
+""")
+
+        elif event_name == "Showdown":
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
+Showdown is today, weekly on {current_day}, at {timestamp}, your local time.
+
+To participate:
+Go to the guild base, turn left and find the arena right outside.
+""")
+
+        elif event_name == "Guild War":
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
+Guild War is today, weekly on {current_day}, at {timestamp}.
 Get ready to defend our honor!
-            """)
+""")
 
-        elif (
-            event_name == "Guild Hero Realm" \
-            and now.strftime("%A") == "Saturday"
-            and now.time().hour == event_time.hour \
-            and now.time().minute == event_time.minute
-            ):
+        elif event_name == "Guild Hero Realm":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Schedule for Guild Hero Realm is every Saturday at {timestamp}.
+Guild Hero Realm is today, weekly at {current_day} at {timestamp}.
+
 To participate:
-Log in an send a message in the guild chat for an invite!
+Log in and send a message in the guild chat for an invite!
 """)
     return
 
