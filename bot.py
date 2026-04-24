@@ -34,6 +34,7 @@ if not GUILD_ID or not GIVEAWAY_CHANNEL_ID:
                      "variables are unset!\n")
     sys.exit(1)
 
+
 # Leveling system
 LEVEL_THRESHOLDS = {
     1: 50,
@@ -309,8 +310,8 @@ class Bot(commands.Bot):
             if channel is None:
                 channel = await self.fetch_channel(BOT_CHANNEL_ID)
             embed = discord.Embed(
-                title=f"Level Up! {message.author.name} is now level {new_level}",
-                description=f"{message.author.mention} leveled up to level {new_level}! They have sent {message_count} messages.",
+                title=f"Level Up! {message.author.mention} is now level {new_level}",
+                description=f"{message.author.mention} leveled up from level {old_level} to level {new_level}!\n",
                 color=discord.Color.green(),
             )
             embed.set_thumbnail(url=message.author.display_avatar.url if message.author.display_avatar else None)
