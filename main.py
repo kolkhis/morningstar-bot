@@ -11,14 +11,6 @@ import datetime as dt
 import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
-# GUILD_EVENTS: dict[str, str] = {
-#     "Guild Party": "15:00",
-#     "Breaking Army": "14:00",
-#     "Showdown": "14:30",
-#     "Guild War": "15:30",
-#     "Guild Hero Realm": "14:30",
-# }
-
 # Monday, Tue, Wed, Thursday guild party will be at 19:00
 # Friday, Breaking Army will be at 19:00
 # Friday, Showdown will be at 20:00
@@ -29,9 +21,9 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Tuesday": "19:00",
         "Wednesday": "19:00",
         "Thursday": "19:00",
-        "Friday": "15:00",
-        "Saturday": "15:00",
-        "Sunday": "15:00",
+        "Friday": "19:00",
+        "Saturday": "19:00",
+        "Sunday": "19:00",
         },
     "Breaking Army": {
         "Friday": "20:00",
@@ -53,6 +45,7 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
+GUILD_ADMINS_CHANNEL_ID:int = 0
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 if BOT_TOKEN == 'empty':
