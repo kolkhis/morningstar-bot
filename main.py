@@ -26,11 +26,11 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Sunday": "15:30",
         },
     "Breaking Army": {
-        "Friday": "20:00",
+        "Friday": "19:30",
         "Saturday": "14:00",
         },
     "Showdown": {
-        "Friday": "19:00",
+        "Friday": "20:00",
         "Saturday": "14:30",
         },
     "Guild War": {
