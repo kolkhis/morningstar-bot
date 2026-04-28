@@ -309,7 +309,7 @@ class Bot(commands.Bot):
             if channel is None:
                 channel = await self.fetch_channel(BOT_CHANNEL_ID)
             embed = discord.Embed(
-                title=f"Level Up! {message.author.name} is now level {new_level}",
+                title=f"Level Up! {message.author.display_name} is now level {new_level}",
                 description=f"{message.author.mention} leveled up to level {new_level}!",
                 color=discord.Color.green(),
             )
