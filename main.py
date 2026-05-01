@@ -21,9 +21,9 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Tuesday": "19:00",
         "Wednesday": "19:00",
         # "Thursday": "19:00",
-        "Friday": "15:30",
-        "Saturday": "15:30",
-        "Sunday": "15:30",
+        "Friday": "15:00",
+        "Saturday": "15:00",
+        "Sunday": "15:00",
         },
     "Breaking Army": {
         "Friday": "19:30",
@@ -49,7 +49,7 @@ GUILD_ADMINS_CHANNEL_ID:int = 0
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 if BOT_TOKEN == 'empty':
-    sys.stderr.write('[ERROR]: Bot token environment variable is unset! Set in venv/bin/activate\n')
+    sys.stderr.write('[ERROR]: BOT_TOKEN environment variable is unset! Set in venv/bin/activate\n')
     sys.exit(1)
 
 bot: Bot = Bot()
