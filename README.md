@@ -97,4 +97,6 @@ Refactor the `created_at` row entries in the giveaways table to use a
 non-deprecated function for getting current time.  
 Currently using `dt.datetime.utcnow().isoformat()` which is deprecated.  
 
+- Add level check functionality to determine event eligibility
+- Add a command to output all members of a given level
 
