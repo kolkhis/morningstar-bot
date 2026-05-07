@@ -207,6 +207,37 @@ class Bot(commands.Bot):
             row = self.get_user_stats(user_id)
             return row
 
+    def get_user_stats_readonly(self, user_id: int) -> Optional[sqlite3.Row]:
+        """Return a user's stats row from the database, or None if missing."""
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            SELECT user_id, message_count, level
+            FROM users
+            WHERE user_id = ?
+            """,
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        return row
+
+
+    def get_users_by_level(self, level: int) -> Sequence[sqlite3.Row]:
+        """Return all users at a specific level."""
+        cursor = self.db.cursor()
+        message_count_lower_threshold = LEVEL_THRESHOLDS.get(level, 0)
+        message_count_upper_threshold = LEVEL_THRESHOLDS.get(level+1, 1)
+        cursor.execute(
+            """
+            SELECT user_id, message_count, level
+            FROM users
+            WHERE message_count >= ? AND message_count <= ?
+            """,
+            (message_count_lower_threshold, message_count_upper_threshold)
+        )
+        rows = cursor.fetchall()
+        return rows
+
     def create_user_stats(self, user_id: int) -> None:
         """Create a new stats row for a user."""
         cursor = self.db.cursor()
@@ -280,6 +311,7 @@ class Bot(commands.Bot):
         percent = int(ratio * 100)
 
         return f"[{'█' * filled}{'░' * empty}] {percent}%"
+
 
     # Bot event handler for tracking messages and leveling up users
     async def on_message(self, message: discord.Message) -> None:
