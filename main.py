@@ -134,6 +134,26 @@ async def level_cmd(ita: discord.Interaction):
     await ita.response.send_message(embed=embed)
     return
 
+@bot.tree.command(name="users_by_level", description="Get a list of all users of a specified level")
+@app_commands.describe(level="The level to filter users by")
+async def users_by_level(ita: discord.Interaction, level: int):
+    if level < 0 or level > max(LEVEL_THRESHOLDS.keys()):
+        await ita.response.send_message(f"Invalid level. Please provide a level between 0 and {max(LEVEL_THRESHOLDS.keys())}.", ephemeral=True)
+        return
+    rows = bot.get_users_by_level(level)
+    if not rows:
+        await ita.response.send_message(f"No users found at level {level}.", ephemeral=True)
+        return
+    lines = []
+
+    for idx, row in enumerate(rows, start=1):
+        lines.append(f"{idx:>2}. <@{row['user_id']}> - {row['message_count']} messages")
+
+    await ita.response.send_message(f"# Users at level {level}:\n" + "\n".join(lines), ephemeral=True)
+    # user_mentions = [f"<@{user['user_id']}>" for user in lines]
+    # mentions_str = "\n".join(user_mentions)
+    # await ita.response.send_message(f"Users at level {level}:\n{mentions_str}", ephemeral=True)
+
 ################# GIVEAWAY ADMIN COMMANDS #################
 # TODO(feat): Add command to end giveaway early
 # TODO(feat): Add command to reroll giveaway winner
@@ -178,6 +198,7 @@ async def giveaway_status_cmd(ita: discord.Interaction):
         f"Emoji: {giveaway['emoji']}",
         ephemeral=True
     )
+
 
 ###### GUILD EVENT NOTIFICATIONS ######
 # Command to display a Discord timestamp for times of the guild events
@@ -295,6 +316,8 @@ be done in a team for 4 hours. Within reason (can't demand gifts, etc.), and if
 you feel uncomfortable, message Azi or any Arch and they will find someone to 
 take your place.
     """)
+
+
 
 
 @guild_event_notification_loop.before_loop
