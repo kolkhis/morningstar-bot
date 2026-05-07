@@ -47,7 +47,8 @@ LEVEL_THRESHOLDS = {
     9: 450,
     10: 500,
 }
-MESSAGE_COOLDOWN: int = 1 # seconds
+MESSAGE_COOLDOWN: int = 1 # in seconds
+
 def calculate_level(message_count: int) -> int:
     level = 0
     for lvl, threshold in LEVEL_THRESHOLDS.items():

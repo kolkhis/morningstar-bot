@@ -134,6 +134,27 @@ async def level_cmd(ita: discord.Interaction):
     await ita.response.send_message(embed=embed)
     return
 
+@bot.tree.command(name="fetch-stats", description="Fetch the stats for a specific user")
+@app_commands.describe(user="The user to fetch stats for")
+async def fetch_stats_cmd(ita: discord.Interaction, user: discord.User):
+    row = bot.get_user_stats(user.id)
+    if row is None:
+        await ita.response.send_message("User not found in the database.", ephemeral=True)
+        return
+
+    embed = discord.Embed(
+        title="Level Stats",
+        description=f"Stats for {user.mention}",
+        color=discord.Color.blurple(),
+    )
+    embed.add_field(name="Level", value=str(row["level"]), inline=True)
+    embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
+
+    if user.display_avatar:
+        embed.set_thumbnail(url=user.display_avatar.url)
+    await ita.response.send_message(embed=embed, ephemeral=True)
+    return
+
 @bot.tree.command(name="users_by_level", description="Get a list of all users of a specified level")
 @app_commands.describe(level="The level to filter users by")
 async def users_by_level(ita: discord.Interaction, level: int):
