@@ -12,9 +12,13 @@ import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
 # Monday, Tue, Wed, Thursday guild party will be at 19:00
+# The rest of days, guild party will be at 15:00
+# - Guild party can be changed from 19:00 to 15:00 and still run the next day,
+#   but aura injected at the 19:00 party will count towards the subsequent one.
+# - TODO(check): See if party can seamlessly change between 15:00 and 19:00 for
+#   next-day.  
 # Friday, Breaking Army will be at 19:00
 # Friday, Showdown will be at 20:00
-# TODO(refactor): Use dict containing weekday and times for specific events
 GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Guild Party": {
         "Monday": "19:00",
