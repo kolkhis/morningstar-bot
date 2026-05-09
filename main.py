@@ -38,8 +38,8 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Saturday": "14:30",
         },
     "Guild War": {
-        "Saturday": "15:30",
-        "Sunday": "15:30"
+        "Saturday": "14:30",
+        "Sunday": "14:30"
         },
     "Guild Hero Realm": {
         "Saturday": "14:30"
