@@ -24,7 +24,7 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Monday": "19:00",
         "Tuesday": "19:00",
         "Wednesday": "19:00",
-        # "Thursday": "19:00",
+        "Thursday": "15:00",
         "Friday": "15:00",
         "Saturday": "15:00",
         "Sunday": "15:00",
