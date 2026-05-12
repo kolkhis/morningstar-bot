@@ -225,8 +225,15 @@ class Bot(commands.Bot):
     def get_users_by_level(self, level: int) -> Sequence[sqlite3.Row]:
         """Return all users at a specific level."""
         cursor = self.db.cursor()
-        message_count_lower_threshold = LEVEL_THRESHOLDS.get(level, 0)
-        message_count_upper_threshold = LEVEL_THRESHOLDS.get(level+1, 1)
+        if level == 0:
+            message_count_lower_threshold = 0 
+            message_count_upper_threshold = LEVEL_THRESHOLDS.get(1, 1) 
+        elif level >= max(LEVEL_THRESHOLDS):
+            message_count_lower_threshold = LEVEL_THRESHOLDS[max(LEVEL_THRESHOLDS)]
+            message_count_upper_threshold = float('inf')
+        else:
+            message_count_lower_threshold = LEVEL_THRESHOLDS.get(level, 0)
+            message_count_upper_threshold = LEVEL_THRESHOLDS.get(level+1, 1)
         cursor.execute(
             """
             SELECT user_id, message_count, level
