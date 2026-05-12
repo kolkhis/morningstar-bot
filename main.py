@@ -106,7 +106,6 @@ async def fetch_stats_cmd(ita: discord.Interaction, user: discord.User):
 #     )
 #     embed.add_field(name="Level", value=str(row["level"]), inline=True)
 #     embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
-
 #     if user.display_avatar:
 #         embed.set_thumbnail(url=user.display_avatar.url)
 #     embed.set_footer(text="Keep being involved to level up!")
@@ -174,11 +173,26 @@ async def users_by_level(ita: discord.Interaction, level: int):
 
     for idx, row in enumerate(rows, start=1):
         lines.append(f"{idx:>2}. <@{row['user_id']}> - {row['message_count']} messages")
-
     await ita.response.send_message(f"# Users at level {level}:\n" + "\n".join(lines), ephemeral=True)
     # user_mentions = [f"<@{user['user_id']}>" for user in lines]
     # mentions_str = "\n".join(user_mentions)
     # await ita.response.send_message(f"Users at level {level}:\n{mentions_str}", ephemeral=True)
+
+
+@bot.tree.command(name="users_over_level", description="Get count of all users of a specified level and above")
+@app_commands.describe(level="The level to filter users by")
+async def users_over_level(ita: discord.Interaction, level: int):
+    if level < 0 or level > max(LEVEL_THRESHOLDS.keys()):
+        await ita.response.send_message(f"Invalid level. Please provide a level between 0 and {max(LEVEL_THRESHOLDS.keys())}.", ephemeral=True)
+        return
+    count = 0
+    for lvl in range(level, max(LEVEL_THRESHOLDS.keys()) + 1):
+        count += len(bot.get_users_by_level(lvl))
+    if not count:
+        await ita.response.send_message(f"No users found above level {level}.", ephemeral=True)
+        return
+    await ita.response.send_message(f"Number of users level {level} and above: {count}")
+
 
 ################# GIVEAWAY ADMIN COMMANDS #################
 # TODO(feat): Add command to end giveaway early
