@@ -179,15 +179,13 @@ async def users_by_level(ita: discord.Interaction, level: int):
     # await ita.response.send_message(f"Users at level {level}:\n{mentions_str}", ephemeral=True)
 
 
-@bot.tree.command(name="users_over_level", description="Get count of all users of a specified level and above")
+@bot.tree.command(name="count_users_over_level", description="Get count of all users of a specified level and above")
 @app_commands.describe(level="The level to filter users by")
-async def users_over_level(ita: discord.Interaction, level: int):
+async def count_users_over_level(ita: discord.Interaction, level: int):
     if level < 0 or level > max(LEVEL_THRESHOLDS.keys()):
         await ita.response.send_message(f"Invalid level. Please provide a level between 0 and {max(LEVEL_THRESHOLDS.keys())}.", ephemeral=True)
         return
-    count = 0
-    for lvl in range(level, max(LEVEL_THRESHOLDS.keys()) + 1):
-        count += len(bot.get_users_by_level(lvl))
+    count = bot.count_users_above_level(level)
     if not count:
         await ita.response.send_message(f"No users found above level {level}.", ephemeral=True)
         return
