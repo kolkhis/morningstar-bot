@@ -222,7 +222,6 @@ class Bot(commands.Bot):
         row = cursor.fetchone()
         return row
 
-
     def get_users_by_level(self, level: int) -> Sequence[sqlite3.Row]:
         """Return all users at a specific level."""
         cursor = self.db.cursor()
@@ -238,6 +237,21 @@ class Bot(commands.Bot):
         )
         rows = cursor.fetchall()
         return rows
+
+    def count_users_above_level(self, level: int) -> int:
+        """Return the count of users above a specific level."""
+        cursor = self.db.cursor()
+        message_count_threshold = LEVEL_THRESHOLDS.get(level, 0)
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS user_count
+            FROM users
+            WHERE message_count >= ?
+            """,
+            (message_count_threshold,)
+        )
+        row = cursor.fetchone()
+        return row["user_count"] if row else 0
 
     def create_user_stats(self, user_id: int) -> None:
         """Create a new stats row for a user."""
