@@ -25,7 +25,13 @@ GIVEAWAY_EMOJI: str = "🎉"
 REQUIRED_ROLE_ID: int = 1481044257916850361 
 BOT_CHANNEL_ID: int = 1482014535966654565  # The `#kolbot` channel
 BOT_ADMIN_CHANNEL_ID: int = int(os.getenv('BOT_ADMIN_CHANNEL_ID', '0'))
-REQUIRED_LEVEL: int = 3
+GIVEAWAY_REQUIRED_LEVEL: int = 3
+
+EVENT_REQUIRED_LEVEL: int = 2
+EVENT_ROLE_ID: int = int(os.getenv('EVENT_ROLE_ID', '0'))
+if not EVENT_ROLE_ID:
+    sys.stderr.write("[ERROR]: The EVENT_ROLE_ID environment variable is not set!\n")
+    sys.exit(1)
 
 GUILD_ID: int = int(os.getenv('GUILD_ID', '0'))
 GIVEAWAY_CHANNEL_ID: int = int(os.getenv('GIVEAWAY_CHANNEL_ID', '0'))
@@ -75,9 +81,12 @@ class Bot(commands.Bot):
         self.giveaway_channel_id: int = GIVEAWAY_CHANNEL_ID if GIVEAWAY_CHANNEL_ID is not None \
             else int(os.environ.get('GIVEAWAY_CHANNEL_ID', '0'))
 
-        if not self.guild_id or not self.giveaway_channel_id:
-            sys.stderr.write("[ERROR]: One of the GUILD_ID or GIVEAWAY_CHANNEL_ID environment " \
-                             "variables are unset!\n")
+        self.event_role_id = EVENT_ROLE_ID if EVENT_ROLE_ID is not None \
+            else int(os.environ.get('EVENT_ROLE_ID', '0'))
+
+        if not self.guild_id or not self.giveaway_channel_id or not self.event_role_id:
+            sys.stderr.write("[ERROR]: One of the GUILD_ID or GIVEAWAY_CHANNEL_ID or EVENT_ROLE_ID" \
+                             "environment variables are unset!\n")
             sys.exit(1)
 
         self.db: sqlite3.Connection = sqlite3.connect("guildbot.db")
@@ -245,6 +254,20 @@ class Bot(commands.Bot):
         rows = cursor.fetchall()
         return rows
 
+    def get_users_at_or_above_level(self, level: int) -> list[sqlite3.Row]:
+        """Return all users at or above a specific level."""
+        cursor = self.db.cursor()
+        cursor.execute(
+            """
+            SELECT user_id, message_count, level
+            FROM users
+            WHERE level >= ?
+            ORDER BY level DESC, message_count DESC
+            """,
+            (level,),
+        )
+        return cursor.fetchall()
+
     def count_users_above_level(self, level: int) -> int:
         """Return the count of users above a specific level."""
         cursor = self.db.cursor()
@@ -334,6 +357,33 @@ class Bot(commands.Bot):
 
         return f"[{'█' * filled}{'░' * empty}] {percent}%"
 
+    async def assign_event_role_if_eligible(
+        self,
+        member: discord.Member,
+        level: int,
+    ) -> bool:
+        """Assign the event role to a member if they are eligible based on their level."""
+        if not EVENT_ROLE_ID:
+            return False
+        if level < EVENT_REQUIRED_LEVEL:
+            return False
+        role = member.guild.get_role(EVENT_ROLE_ID)
+
+        if role is None:
+            try:
+                role = await member.guild.fetch_role(EVENT_ROLE_ID)
+            except discord.DiscordException:
+                sys.stderr.write(f"\x1b[31m[ERROR]:\x1b[0m Event role with ID {EVENT_ROLE_ID} not found. Cannot assign event role.\n")
+                return False
+        if role in member.roles:
+            return False
+        try:
+            await member.add_roles(role, reason="User reached required level for event role.")
+            return True
+        except discord.DiscordException:
+            sys.stderr.write(f"\x1b[31m[ERROR]:\x1b[0m Failed to assign event role to member {member.id}. Check permissions and role hierarchy.\n")
+            return False
+
 
     # Bot event handler for tracking messages and leveling up users
     async def on_message(self, message: discord.Message) -> None:
@@ -362,11 +412,21 @@ class Bot(commands.Bot):
             channel = self.get_channel(BOT_CHANNEL_ID)
             if channel is None:
                 channel = await self.fetch_channel(BOT_CHANNEL_ID)
+
+            role_added: bool = False
+            if isinstance(message.author, discord.Member):
+                role_added = await self.assign_event_role_if_eligible(message.author, new_level)
+                
             embed = discord.Embed(
                 title=f"Level Up! {message.author.display_name} is now level {new_level}",
                 description=f"{message.author.mention} leveled up to level {new_level}!",
                 color=discord.Color.green(),
             )
+            if role_added:
+                embed.add_field(
+                    name="Event Role Unlocked!",
+                    value=f"{message.author.mention} has unlocked access to the Sunken Market event by reaching level {new_level}!", inline=False
+                    )
             embed.set_thumbnail(url=message.author.display_avatar.url if message.author.display_avatar else None)
             await channel.send(
                 content=f"{message.author.mention} leveled up!",
@@ -444,7 +504,7 @@ class Bot(commands.Bot):
         if row is None:
             return False
 
-        return row["level"] >= REQUIRED_LEVEL
+        return row["level"] >= GIVEAWAY_REQUIRED_LEVEL
 
     async def post_giveaway(self) -> Optional[discord.Message]:
         channel = await self.get_giveaway_channel()
@@ -467,7 +527,7 @@ class Bot(commands.Bot):
             f"React to this message with {GIVEAWAY_EMOJI} to enter the giveaway!\n"
             f"## Eligibility requirements:\n\n" 
             f"- Must have the @{REQUIRED_ROLE_ID} role.  \n"
-            f"- Must be level {REQUIRED_LEVEL} (use `/level` to check your stats in #kolbot).  \n\n"
+            f"- Must be level {GIVEAWAY_REQUIRED_LEVEL} (use `/level` to check your stats in #kolbot).  \n\n"
             f"Winners will be randomly selected from the pool of eligible entrants who react to this message."
         )
 
