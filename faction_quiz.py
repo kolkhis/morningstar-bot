@@ -247,6 +247,109 @@ class FactionChoiceView(discord.ui.View):
     async def siren_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.assign_role(interaction, "Siren")
 
+class QuizQuestionView(discord.ui.View):
+    def __init__(self, user: discord.Member, question_index: int, scores: Counter):
+        super().__init__(timeout=300)
+        self.user = user
+        self.question_index = question_index
+        self.scores = scores
+    
+        question = FACTION_QUESTIONS[question_index]
+        for answer_text, faction in question["answers"]:
+            self.add_item(AnswerButton(answer_text, faction))
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user.id == self.user.id
+    async def handle_answer(self, interaction: discord.Interaction, faction: str):
+        self.scores[faction] += 1
+        next_index = self.question_index + 1
+
+        if next_index >= len(FACTION_QUESTIONS):
+            await self.finish_quiz(interaction)
+            return
+
+        question = FACTION_QUESTIONS[next_index]
+        embed = discord.Embed(
+            title=f"Faction Quiz - Question {next_index + 1}/{len(FACTION_QUESTIONS)}",
+            description=question["question"],
+            color=discord.Color.dark_purple(),
+        )
+        view = QuizQuestionView(
+            user = self.user,
+            question_index=next_index,
+            scores=self.scores,
+        )
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    async def finish_quiz(self, interaction: discord.Interaction):
+        skeleton = self.scores["Skeleton"]
+        siren = self.scores["Siren"]
+        abyss = self.scores["Abyss Watcher"]
+
+        if skeleton > siren and skeleton > abyss:
+            view = FactionChoiceView(self.user)
+            await view.assign_role(interaction, "Skeleton")
+            return
+
+        if siren > skeleton and siren > abyss:
+            view = FactionChoiceView(self.user)
+            await view.assign_role(interaction, "Siren")
+            return
+
+        embed = discord.Embed(
+            title="The Abyss Watches You",
+            description=(
+                "Your answers leaned toward **Abyss Watcher**.\n\n"
+                "You may now choose which faction to join:"
+            ),
+            color=discord.Color.dark_teal(),
+        )
+
+        embed.add_field(name="Skeleton", value="Power, survival, ambition.", inline=False)
+        embed.add_field(name="Siren", value="Loyalty, charm, devotion.", inline=False)
+
+        await interaction.response.edit_message(
+            embed=embed,
+            view=FactionChoiceView(self.user),
+        )
+
+class AnswerButton(discord.ui.Button):
+    def __init__(self, label: str, faction: str):
+        super().__init__(label=label, style=discord.ButtonStyle.primary)
+        self.faction = faction
+    async def callback(self, interaction: discord.Interaction):
+        view: QuizQuestionView = self.view  # type: ignore
+        await view.handle_answer(interaction, self.faction)
+
+class FactionQuizCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @app_commands.command(name="faction_quiz", description="Take the faction assignment quiz")
+    async def faction_quiz(self, interaction: discord.Interaction):
+        if interaction.guild is None:
+            await interaction.response.send_message("This command must be used in the server.", ephemeral=True)
+            return
+
+        member = interaction.guild.get_member(interaction.user.id)
+        if member is None:
+            member = await interaction.guild.fetch_member(interaction.user.id)
+
+        question = FACTION_QUESTIONS[0]
+
+        embed = discord.Embed(
+            title=f"Faction Quiz — Question 1/{len(FACTION_QUESTIONS)}",
+            description=question["question"],
+            color=discord.Color.dark_purple(),
+        )
+
+        view = QuizQuestionView(user=member, question_index=0, scores=Counter())
+
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(FactionQuizCog(bot))
 
     # @discord.ui.select(
     #     placeholder="Choose your answer...",
