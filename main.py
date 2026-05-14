@@ -431,6 +431,8 @@ async def before_event_notification_loop():
 async def main() -> None:
     async with bot:
         print("Bot starting...")
+        await bot.load_extension("faction_quiz")
+
         if not guild_event_notification_loop.is_running():
             guild_event_notification_loop.start()
 
