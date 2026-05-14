@@ -356,71 +356,71 @@ take your place.
     """)
 
 
-@bot.tree.command(
-    name="assign_event_role",
-    description="Give the event role to all users at or above the required level"
-)
-async def assign_event_role_cmd(ita: discord.Interaction):
-    if not ita.user.guild_permissions.administrator:
-        await ita.response.send_message(
-            "You do not have permission to use this command.",
-            ephemeral=True,
-        )
-        return
+# @bot.tree.command(
+#     name="assign_event_role",
+#     description="Give the event role to all users at or above the required level"
+# )
+# async def assign_event_role_cmd(ita: discord.Interaction):
+#     if not ita.user.guild_permissions.administrator:
+#         await ita.response.send_message(
+#             "You do not have permission to use this command.",
+#             ephemeral=True,
+#         )
+#         return
 
-    await ita.response.defer(ephemeral=True)
+#     await ita.response.defer(ephemeral=True)
 
-    if ita.guild is None:
-        await ita.followup.send("This command must be used in a server.")
-        return
+#     if ita.guild is None:
+#         await ita.followup.send("This command must be used in a server.")
+#         return
 
-    role = ita.guild.get_role(EVENT_ROLE_ID)
-    if role is None:
-        await ita.followup.send(
-            f"Event role with ID `{EVENT_ROLE_ID}` was not found."
-        )
-        return
+#     role = ita.guild.get_role(EVENT_ROLE_ID)
+#     if role is None:
+#         await ita.followup.send(
+#             f"Event role with ID `{EVENT_ROLE_ID}` was not found."
+#         )
+#         return
 
-    rows = bot.get_users_at_or_above_level(EVENT_REQUIRED_LEVEL)
+#     rows = bot.get_users_at_or_above_level(EVENT_REQUIRED_LEVEL)
 
-    added = 0
-    already_had = 0
-    not_found = 0
-    failed = 0
+#     added = 0
+#     already_had = 0
+#     not_found = 0
+#     failed = 0
 
-    for row in rows:
-        user_id = row["user_id"]
+#     for row in rows:
+#         user_id = row["user_id"]
 
-        member = ita.guild.get_member(user_id)
-        if member is None:
-            try:
-                member = await ita.guild.fetch_member(user_id)
-            except discord.DiscordException:
-                not_found += 1
-                continue
+#         member = ita.guild.get_member(user_id)
+#         if member is None:
+#             try:
+#                 member = await ita.guild.fetch_member(user_id)
+#             except discord.DiscordException:
+#                 not_found += 1
+#                 continue
 
-        if role in member.roles:
-            already_had += 1
-            continue
+#         if role in member.roles:
+#             already_had += 1
+#             continue
 
-        try:
-            await member.add_roles(
-                role,
-                reason=f"Retroactive event role assignment for level {row['level']}.",
-            )
-            added += 1
-        except discord.DiscordException:
-            failed += 1
+#         try:
+#             await member.add_roles(
+#                 role,
+#                 reason=f"Retroactive event role assignment for level {row['level']}.",
+#             )
+#             added += 1
+#         except discord.DiscordException:
+#             failed += 1
 
-    await ita.followup.send(
-        "Event role assignment complete.\n"
-        f"Required level: **{EVENT_REQUIRED_LEVEL}**\n"
-        f"Role: {role.mention}\n"
-        f"Added: **{added}**\n"
-        f"Already had role: **{already_had}**\n"
-        f"Members not found: **{not_found}**\n"
-        f"Failed: **{failed}**"
-    )
+#     await ita.followup.send(
+#         "Event role assignment complete.\n"
+#         f"Required level: **{EVENT_REQUIRED_LEVEL}**\n"
+#         f"Role: {role.mention}\n"
+#         f"Added: **{added}**\n"
+#         f"Already had role: **{already_had}**\n"
+#         f"Members not found: **{not_found}**\n"
+#         f"Failed: **{failed}**"
+#     )
 
 
 
