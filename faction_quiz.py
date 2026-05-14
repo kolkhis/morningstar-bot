@@ -3,8 +3,8 @@ from discord import app_commands
 from discord.ext import commands
 from collections import Counter
 
-SKELETON_ROLE_ID: int = 0
-SIREN_ROLE_ID: int = 0
+SKELETON_ROLE_ID: int = 1504521227979456662
+SIREN_ROLE_ID: int = 1504521401099354162
 
 FACTION_QUESTIONS = [
   {
