@@ -393,30 +393,3 @@ class FactionQuizCog(commands.Cog):
 async def setup(bot: commands.Bot):
     await bot.add_cog(FactionQuizCog(bot))
 
-    # @discord.ui.select(
-    #     placeholder="Choose your answer...",
-    #     options=[
-    #         discord.SelectOption(label=answer[0], value=answer[1])
-    #         for question in FACTION_QUESTIONS
-    #         for answer in question["answers"]
-    #     ],
-    # )
-    # async def select_answer(self, interaction: discord.Interaction, select: discord.ui.Select):
-    #     if interaction.user.id != self.user_id:
-    #         await interaction.response.send_message("This is not your quiz!", ephemeral=True)
-    #         return
-
-    #     question_index = len(self.responses) // 4
-    #     if question_index >= len(FACTION_QUESTIONS):
-    #         await interaction.response.send_message("You have already completed the quiz!", ephemeral=True)
-    #         return
-
-    #     selected_faction = select.values[0]
-    #     self.responses[question_index] = selected_faction
-
-    #     if len(self.responses) == len(FACTION_QUESTIONS) * 4:
-    #         faction_counts = Counter(self.responses.values())
-    #         most_common_faction = faction_counts.most_common(1)[0][0]
-    #         await interaction.response.send_message(f"You belong to the {most_common_faction} faction!", ephemeral=True)
-    #         # Here you would add role assignment logic based on
-    #         # most_common_faction
