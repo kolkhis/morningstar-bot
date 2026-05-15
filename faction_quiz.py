@@ -214,73 +214,134 @@ def already_bound_embed(faction: str) -> discord.Embed:
 
 class FactionChoiceView(discord.ui.View):
     def __init__(self, user: discord.Member, target_faction: str | None = None):
-        super().__init__(timeout=300)
+        super().__init__(timeout=900)
         self.user = user
         self.target_faction = target_faction
-        self.responses = {}
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        return interaction.user.id == self.user.id
+        if interaction.user.id != self.user.id:
+            await interaction.response.send_message(
+                "The abyss does not answer to you. This choice belongs to another soul.",
+                ephemeral=True,
+            )
+            return False
+
+        return True
 
     async def assign_role(self, interaction: discord.Interaction, faction: str):
+        # Acknowledge the button click immediately.
+        await interaction.response.defer(ephemeral=True)
+
         if interaction.guild is None:
-            await interaction.response.send_message("Guild not found. User must be in a server.", ephemeral=True)
+            await interaction.followup.send(
+                "The pact cannot be sealed outside the server.",
+                ephemeral=True,
+            )
             return
 
-        role_id = SKELETON_ROLE_ID if faction == "Skeleton" \
-            else SIREN_ROLE_ID if faction == "Siren" \
+        role_id = (
+            SKELETON_ROLE_ID if faction == "Skeleton"
+            else SIREN_ROLE_ID if faction == "Siren"
             else None
-        opposite_role_id = SIREN_ROLE_ID if faction == "Skeleton" \
-            else SKELETON_ROLE_ID if faction == "Siren" \
+        )
+
+        opposite_role_id = (
+            SIREN_ROLE_ID if faction == "Skeleton"
+            else SKELETON_ROLE_ID if faction == "Siren"
             else None
+        )
 
         if role_id is None or opposite_role_id is None:
-            await interaction.response.send_message("Invalid faction.", ephemeral=True)
+            await interaction.followup.send(
+                "The abyss returned an invalid faction. Contact an administrator.",
+                ephemeral=True,
+            )
             return
+
         role = interaction.guild.get_role(role_id)
         opposite_role = interaction.guild.get_role(opposite_role_id)
 
         if role is None:
-            await interaction.response.send_message(f"Role for {faction} not found. Please contact an administrator.", ephemeral=True)
-            return
-        member = interaction.guild.get_member(interaction.user.id)        
-        if member is None:
-            await interaction.response.send_message(f"Member {interaction.user.name} not found in guild (server).", ephemeral=True)
-            return
-        roles_to_remove = []
-
-        # Disallow faction changes if they already have a faction role
-        if role in member.roles or opposite_role in member.roles:
-            await interaction.response.edit_message(
-                content="You have already been assigned a faction role. You may not change factions after taking the quiz. If you believe this is an error, please contact an administrator.",
-                embed=None,
-                view=None
+            await interaction.followup.send(
+                f"The **{faction}** role could not be found. Contact an administrator.",
+                ephemeral=True,
             )
             return
 
-        # If allowing faction changes, removes opposite role if they have it
-        if opposite_role and opposite_role in member.roles:
-            roles_to_remove.append(opposite_role)
-        if roles_to_remove:
-            await member.remove_roles(*roles_to_remove, reason="Faction change")
+        member = interaction.guild.get_member(interaction.user.id)
+        if member is None:
+            try:
+                member = await interaction.guild.fetch_member(interaction.user.id)
+            except discord.DiscordException:
+                await interaction.followup.send(
+                    "The sea could not find you among the crew. Please try again.",
+                    ephemeral=True,
+                )
+                return
 
-        if role not in member.roles:
-            await member.add_roles(role, reason="Faction quiz result")
+        existing_faction = get_existing_faction(member)
+        if existing_faction is not None:
+            await interaction.edit_original_response(
+                content=None,
+                embed=already_bound_embed(existing_faction),
+                view=None,
+            )
+            return
 
-        await interaction.response.edit_message(
-            content=f"You have been assigned to the {faction} faction!",
-            embed=None,
-            view=None
+        try:
+            if opposite_role is not None and opposite_role in member.roles:
+                await member.remove_roles(opposite_role,reason="Faction quiz role cleanup")
+
+            if role not in member.roles:
+                await member.add_roles(role, reason="Faction quiz result")
+
+        except discord.Forbidden:
+            await interaction.followup.send(
+                (
+                    "The pact could not be sealed because I do not have permission "
+                    "to assign that role."
+                ),
+                ephemeral=True,
+            )
+            return
+
+        except discord.HTTPException as exc:
+            await interaction.followup.send(
+                f"The pact failed due to a Discord error: `{exc}`",
+                ephemeral=True,
+            )
+            return
+
+        success_embed = discord.Embed(
+            title=f"You Have Joined {faction}",
+            description=(
+                "The pact is sealed.\n\n"
+                f"You now sail beneath the banner of **{faction}**."
+            ),
+            color=discord.Color.green(),
+        )
+
+        await interaction.edit_original_response(
+            content=None,
+            embed=success_embed,
+            view=None,
         )
 
     @discord.ui.button(label="Skeleton", style=discord.ButtonStyle.success)
-    async def skeleton_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def skeleton_button(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button,
+    ):
         await self.assign_role(interaction, "Skeleton")
 
     @discord.ui.button(label="Siren", style=discord.ButtonStyle.success)
-    async def siren_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def siren_button(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button,
+    ):
         await self.assign_role(interaction, "Siren")
-
 class QuizQuestionView(discord.ui.View):
     def __init__(self, user: discord.Member, question_index: int, scores: Counter):
         super().__init__(timeout=300)
@@ -361,23 +422,35 @@ class FactionQuizCog(commands.Cog):
 
     @app_commands.command(name="faction_quiz", description="Take the faction assignment quiz")
     async def faction_quiz(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
         if interaction.guild is None:
-            await interaction.response.send_message("This command must be used in the server.", ephemeral=True)
+            await interaction.followup.send(
+                "This command must be used in the server.",
+                ephemeral=True,
+            )
             return
 
         member = interaction.guild.get_member(interaction.user.id)
         if member is None:
-            member = await interaction.guild.fetch_member(interaction.user.id)
-
-        question = FACTION_QUESTIONS[0]
+            try:
+                member = await interaction.guild.fetch_member(interaction.user.id)
+            except discord.DiscordException:
+                await interaction.followup.send(
+                    "I could not find your server membership. Please try again.",
+                    ephemeral=True,
+                )
+                return
 
         existing_faction = get_existing_faction(member)
         if existing_faction is not None:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 embed=already_bound_embed(existing_faction),
                 ephemeral=True,
             )
             return
+
+        question = FACTION_QUESTIONS[0]
 
         embed = discord.Embed(
             title=f"Faction Quiz — Question 1/{len(FACTION_QUESTIONS)}",
@@ -387,8 +460,11 @@ class FactionQuizCog(commands.Cog):
 
         view = QuizQuestionView(user=member, question_index=0, scores=Counter())
 
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
+        await interaction.followup.send(
+            embed=embed,
+            view=view,
+            ephemeral=True,
+        )
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(FactionQuizCog(bot))
