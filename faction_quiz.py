@@ -189,6 +189,29 @@ FACTION_QUESTIONS = [
     },
 ]
 
+def get_existing_faction(member: discord.Member) -> str | None:
+    """Return the member's current faction name, or None if unassigned."""
+    has_skeleton = any(role.id == SKELETON_ROLE_ID for role in member.roles)
+    has_siren = any(role.id == SIREN_ROLE_ID for role in member.roles)
+    if has_skeleton:
+        return "Skeleton"
+    if has_siren:
+        return "Siren"
+    return None
+
+def already_bound_embed(faction: str) -> discord.Embed:
+    embed = discord.Embed(
+        title="The Pact Has Already Been Sealed",
+        description=(
+            f"The tide has already claimed you.\n\n"
+            f"You are bound to **{faction}**, and the sea does not forget its oaths.\n\n"
+            "If you believe this was a mistake, contact an administrator."
+        ),
+        color=discord.Color.dark_purple(),
+    )
+    return embed
+
+
 class FactionChoiceView(discord.ui.View):
     def __init__(self, user: discord.Member, target_faction: str | None = None):
         super().__init__(timeout=300)
@@ -225,6 +248,17 @@ class FactionChoiceView(discord.ui.View):
             await interaction.response.send_message(f"Member {interaction.user.name} not found in guild (server).", ephemeral=True)
             return
         roles_to_remove = []
+
+        # Disallow faction changes if they already have a faction role
+        if role in member.roles or opposite_role in member.roles:
+            await interaction.response.edit_message(
+                content="You have already been assigned a faction role. You may not change factions after taking the quiz. If you believe this is an error, please contact an administrator.",
+                embed=None,
+                view=None
+            )
+            return
+
+        # If allowing faction changes, removes opposite role if they have it
         if opposite_role and opposite_role in member.roles:
             roles_to_remove.append(opposite_role)
         if roles_to_remove:
@@ -336,6 +370,14 @@ class FactionQuizCog(commands.Cog):
             member = await interaction.guild.fetch_member(interaction.user.id)
 
         question = FACTION_QUESTIONS[0]
+
+        existing_faction = get_existing_faction(member)
+        if existing_faction is not None:
+            await interaction.response.send_message(
+                embed=already_bound_embed(existing_faction),
+                ephemeral=True,
+            )
+            return
 
         embed = discord.Embed(
             title=f"Faction Quiz — Question 1/{len(FACTION_QUESTIONS)}",
