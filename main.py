@@ -80,38 +80,6 @@ async def fetch_stats_cmd(ita: discord.Interaction, user: discord.User):
     await ita.response.send_message(embed=embed, ephemeral=True)
     return
 
-# @bot.tree.command(name="check_level", description="Check your current message count and level")
-# @app_commands.describe(user_id="The ID of the user to check the level for")
-# async def check_level_cmd(ita: discord.Interaction, user_id: str):
-#     """Check the level of a specific user by their ID."""
-#     try:
-#         user_id_int = int(user_id)
-#     except ValueError:
-#         await ita.response.send_message("Invalid user ID. Please provide a numeric ID.", ephemeral=True)
-#         return
-#     row = bot.get_user_stats(user_id_int)
-#     if row is None:
-#         await ita.response.send_message("User not found in the database.", ephemeral=True)
-#         return
-
-#     user = bot.get_user(user_id_int)
-#     if user is None:
-#         await ita.response.send_message(f"User with ID {user_id_int} not found in Discord.", ephemeral=True)
-#         return
-
-#     embed = discord.Embed(
-#         title="Level Stats",
-#         description=f"Stats for <@{user_id_int}> ({user.name})",
-#         color=discord.Color.blurple(),
-#     )
-#     embed.add_field(name="Level", value=str(row["level"]), inline=True)
-#     embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
-#     if user.display_avatar:
-#         embed.set_thumbnail(url=user.display_avatar.url)
-#     embed.set_footer(text="Keep being involved to level up!")
-#     await ita.response.send_message(embed=embed)
-#     return
-
 @bot.tree.command(name="level", description="Check your current message count and level")
 async def level_cmd(ita: discord.Interaction):
     row = bot.get_user_stats(ita.user.id)
