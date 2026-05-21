@@ -230,7 +230,10 @@ class FactionChoiceView(discord.ui.View):
 
     async def assign_role(self, interaction: discord.Interaction, faction: str):
         # Acknowledge the button click immediately.
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(
+            ephemeral=True,
+            thinking=True,
+        )
 
         if interaction.guild is None:
             await interaction.followup.send(
@@ -342,6 +345,7 @@ class FactionChoiceView(discord.ui.View):
         button: discord.ui.Button,
     ):
         await self.assign_role(interaction, "Siren")
+
 class QuizQuestionView(discord.ui.View):
     def __init__(self, user: discord.Member, question_index: int, scores: Counter):
         super().__init__(timeout=300)
@@ -422,7 +426,10 @@ class FactionQuizCog(commands.Cog):
 
     @app_commands.command(name="faction_quiz", description="Take the faction assignment quiz")
     async def faction_quiz(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(
+            ephemeral=True,
+            thinking=True,
+        )
 
         if interaction.guild is None:
             await interaction.followup.send(
