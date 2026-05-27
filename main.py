@@ -312,19 +312,6 @@ Log in and send a message in the guild chat for an invite!
 """)
     return
 
-# @bot.command(name="sacrifice")
-# async def sacrifice_info(ctx: commands.Context):
-#     await ctx.message.reply(f"""{ctx.author.mention}
-# Here's the purpose of the sacrifices in Angels and Demons:
-
-# If your team loses, a member of the winning team can select a sacrifice of the
-# opposing team to help them with map completion, ST/HR, arena, anything that can
-# be done in a team for 4 hours. Within reason (can't demand gifts, etc.), and if
-# you feel uncomfortable, message Azi or any Arch and they will find someone to 
-# take your place.
-#     """)
-
-
 @guild_event_notification_loop.before_loop
 async def before_event_notification_loop():
     await bot.wait_until_ready()
