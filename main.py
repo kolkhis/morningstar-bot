@@ -48,6 +48,17 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
 }
 
 
+DAY_TO_WEEKDAY = {
+    "Monday": 0,
+    "Tuesday": 1,
+    "Wednesday": 2,
+    "Thursday": 3,
+    "Friday": 4,
+    "Saturday": 5,
+    "Sunday": 6,
+}
+
+
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
 GUILD_ADMINS_CHANNEL_ID:int = 0
@@ -223,13 +234,13 @@ async def guild_events_cmd(ita: discord.Interaction):
 
         for day, time_str in schedule.items():
             event_time = dt.datetime.strptime(time_str, "%H:%M").time()
-            target_weekday = dt.datetime.strptime(day, "%A").weekday()
+            # target_weekday = dt.datetime.strptime(day, "%A").weekday()
+            target_weekday = DAY_TO_WEEKDAY[day]
             days_ahead = (target_weekday - today.weekday()) % 7
             target_date = today + dt.timedelta(days=days_ahead)
             event_dt = dt.datetime.combine(target_date, event_time)
             timestamp = discord.utils.format_dt(event_dt, style="t")
-            countdown = discord.utils.format_dt(event_dt, style="R")
-            lines.append(f"**{day}** at {timestamp}" + (" **(today)**" if days_ahead == 0 else ""))
+            lines.append(f"**{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
 
         # Join all day/time entries for this event
         value = "\n".join(lines)
