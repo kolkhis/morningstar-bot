@@ -223,13 +223,13 @@ async def guild_events_cmd(ita: discord.Interaction):
 
         for day, time_str in schedule.items():
             event_time = dt.datetime.strptime(time_str, "%H:%M").time()
-            # Find the next occurrence of this weekday
             target_weekday = dt.datetime.strptime(day, "%A").weekday()
             days_ahead = (target_weekday - today.weekday()) % 7
             target_date = today + dt.timedelta(days=days_ahead)
             event_dt = dt.datetime.combine(target_date, event_time)
             timestamp = discord.utils.format_dt(event_dt, style="t")
-            lines.append(f"**{day}** at {timestamp}")
+            countdown = discord.utils.format_dt(event_dt, style="R")
+            lines.append(f"**{day}** at {timestamp}" + (" **(today)**" if days_ahead == 0 else ""))
 
         # Join all day/time entries for this event
         value = "\n".join(lines)
@@ -267,6 +267,7 @@ async def guild_event_notification_loop():
             dt.datetime.combine(dt.date.today(), event_time),
             style="t",
         )
+
 
         if event_name == "Guild Party":
             await guild_notification_channel.send(f"""
