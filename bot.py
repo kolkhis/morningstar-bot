@@ -148,6 +148,15 @@ class Bot(commands.Bot):
             ended INTEGER NOT NULL DEFAULT 0
         );
         """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS game_profiles (
+            user_id INTEGER PRIMARY KEY,
+            game_name TEXT NOT NULL,
+            game_uid TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+            );
+        """)
         self.db.commit()
 
     ################ BOT EVENT HANDLERS ################
