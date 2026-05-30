@@ -227,7 +227,7 @@ async def giveaway_status_cmd(ita: discord.Interaction):
 async def guild_events_cmd(ita: discord.Interaction):
     embed = discord.Embed(
         title="Guild Event Schedule",
-        description="Here are the scheduled times for our regular guild events:",
+        description="Below are the scheduled times for our regular guild events.\nAll event times are localized.",
         color=discord.Color.green(),
     )
 
@@ -243,13 +243,13 @@ async def guild_events_cmd(ita: discord.Interaction):
             target_date = today + dt.timedelta(days=days_ahead)
             event_dt = dt.datetime.combine(target_date, event_time)
             timestamp = discord.utils.format_dt(event_dt, style="t")
-            lines.append(f"**{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
+            lines.append(f"- **{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
 
         # Join all day/time entries for this event
         value = "\n".join(lines)
         embed.add_field(
-            name=event_name,
-            value=f"{value}\n*(your local time)*",
+            name=event_name.capitalize(),
+            value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
             inline=False,
         )
     await ita.response.send_message(embed=embed)
