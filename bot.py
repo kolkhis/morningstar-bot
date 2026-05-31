@@ -15,7 +15,7 @@ import sqlite3
 # There will be a weekly giveaway post, and users who react with a specific emoji will be entered into the drawing pool **only if** they are level 10.
 # The post will be automated weekly, and will select from a list of 3 rewards randomly and randomly select a winner.
 
-PREFIXES = ";", "!", ">", "."
+PREFIXES = "!", "."
 REWARDS: list = [
     "$1 Skin",
     "$5 Skin",
