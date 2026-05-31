@@ -248,7 +248,7 @@ async def guild_events_cmd(ita: discord.Interaction):
         # Join all day/time entries for this event
         value = "\n".join(lines)
         embed.add_field(
-            name=event_name.capitalize(),
+            name=event_name,
             value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
             inline=False,
         )
