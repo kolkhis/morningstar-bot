@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ $EUID -ne 0 ]]; then
+    printf >&2 "ERROR: Run as root.\n"
+    exit 1
+fi
+
+if ! [[ -f /etc/systemd/system/discordbot.service ]]; then
+    cat << EOF | tee /etc/systemd/system/discordbot.service
+[Unit]
+Description=Discord Bot Service
+After=network.target
+
+[Service]
+User=$(whoami)
+WorkingDirectory=$(pwd)
+ExecStart=$(command -v python3) $(pwd)/main.py
+Restart=always
+RestartSec=5
+EOF
+    systemctl enable discordbot.service
+    systemctl start discordbot.service
+fi
