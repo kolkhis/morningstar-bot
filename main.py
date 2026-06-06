@@ -252,6 +252,60 @@ async def guild_events_cmd(ita: discord.Interaction):
     await ita.response.send_message(embed=embed)
     return
 
+
+@bot.tree.command(name="do-not-use", description="DM util")
+async def dm_all_except_cmd(ita: discord.Interaction, excluded_member: discord.Member, message: str):
+    ryu = 1395848132444553246
+    kol = 103719303441825792
+    if not ita.user.guild_permissions.administrator and not (ita.user.id in [ryu, kol]):
+        await ita.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    if ita.guild is None:
+        await ita.response.send_message("This command must be used in a server.",ephemeral=True)
+        return
+
+    await ita.response.defer(ephemeral=True)
+    await ita.followup.send(f"Starting DM process. Excluding {excluded_member.mention}.", ephemeral=True)
+
+    formatted_msg = message.replace("\\n", "\n") # allow newlines to be included in the message via \n
+
+    # print(f"Formatted msg to send:\n{formatted_msg}")
+    sent = 0
+    skipped = 0
+    failed = 0
+    failed_users: list[str] = []
+
+    for member in ita.guild.members:
+        if member.bot or member.id == excluded_member.id:
+            skipped += 1
+            continue
+
+        print(f"Attempting to DM {member.name}...")
+        try:
+            await member.send(formatted_msg)
+            sent += 1
+            await asyncio.sleep(1)
+        except discord.Forbidden:
+            failed += 1 # DMs disabled or they blocked the bot
+            failed_users.append(member.name)
+        except discord.HTTPException:
+            sys.stderr.write(f"ERROR: HTTPException when trying to DM {member.name}. Skipping.\n")
+            failed += 1 # Discord API failure
+            failed_users.append(member.name)
+        except Exception as e:
+            sys.stderr.write(f"ERROR: Unexpected exception when trying to DM {member.name}: {e}\n")
+            failed += 1 # catchall
+            failed_users.append(member.name)
+
+    await ita.followup.send(
+        "DM broadcast complete.\n"
+        f"Sent: **{sent}**\n"
+        f"Skipped: **{skipped}**\n"
+        f"Failed: **{failed}**",
+        ephemeral=True
+    )
+
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
     guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
@@ -323,6 +377,7 @@ To participate:
 Log in and send a message in the guild chat for an invite!
 """)
     return
+
 
 @guild_event_notification_loop.before_loop
 async def before_event_notification_loop():
