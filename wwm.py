@@ -41,7 +41,7 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         return cursor.fetchone()
 
-    def set_uid(self, user_id: int, uid: int):
+    def set_uid(self, user_id: int, uid: str):
         """create or update a user's wwm UID"""
         cursor = self.bot.db.cursor()
         cursor.execute(
@@ -116,7 +116,37 @@ class WWM(commands.GroupCog, name="wwm"):
             (user_id,),
         )
         self.bot.db.commit()
+
+    # @app_commands.command(name="", description="")
+    # @app_commands.describe(uid="")
+    # async def uid_command(self, ita: discord.Interaction, uid: str):
+    #     pass
         
+
+    @app_commands.command(name="uid", description="Set your Where Winds Meet in-game UID")
+    @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
+    async def uid_cmd(self, ita: discord.Interaction, uid: str):
+        uid = uid.strip()
+        if not uid:
+            await ita.response.send_message("Please provide a valid UID.", ephemeral=True)
+            return
+
+        if not uid.isdigit():
+            await ita.response.send_message("Your UID should only contain numbers.", ephemeral=True)
+            return
+
+        if not len(uid) != 10:
+            await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
+            return
+
+        self.set_uid(ita.user.id, uid)
+        await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
+        
+
+
+
+
+
 
 
 
