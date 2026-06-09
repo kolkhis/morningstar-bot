@@ -9,7 +9,7 @@ user_schema="""
 CREATE TABLE IF NOT EXISTS wwm_profiles (
     user_id INTEGER PRIMARY KEY,
     updated_at TEXT NOT NULL
-    uid INTEGER NOT NULL,
+    uid TEXT,
     name TEXT,
     mythic_rank TEXT,
     dps TEXT,
@@ -29,7 +29,7 @@ class WWM(commands.GroupCog, name="wwm"):
         self.bot.db.commit()
 
     def get_profile(self, user_id: int):
-        """return a user's wwm UID"""
+        """return a user's WWM profile (DB row for that user)"""
         cursor = self.bot.db.cursor()
         cursor.execute(
             """
@@ -72,3 +72,42 @@ class WWM(commands.GroupCog, name="wwm"):
             (user_id, rank, discord.utils.utcnow().isoformat()),
         )
         self.bot.db.commit()
+
+    def set_name(self, user_id: int, name: str):
+        """create or update the user's WWM name"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO wwm_profiles (user_id, name, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                name = excluded.name,
+                updated_at = excluded.updated_at
+            """,
+            (user_id, name, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
+
+    def set_dps(self, user_id: int, dps: str):
+        """create or update the user's WWM dps"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO wwm_profiles (user_id, dps, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                dps = excluded.dps,
+                updated_at = excluded.updated_at
+            """,
+            (user_id, dps, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
+
+
+
+
+
+
+
