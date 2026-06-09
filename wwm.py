@@ -58,7 +58,7 @@ class WWM(commands.GroupCog, name="wwm"):
         self.bot.db.commit()
 
     def set_mythic_rank(self, user_id: int, rank: str):
-        """create or update the user's WWM name"""
+        """create or update the user's WWM mythic rank"""
         cursor = self.bot.db.cursor()
         cursor.execute(
             """
