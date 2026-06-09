@@ -105,6 +105,18 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
+    def delete_profile(self, user_id: int):
+        """delete a user's profile frome DB"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            DELETE FROM wwm_profiles
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+        self.bot.db.commit()
+        
 
 
 
