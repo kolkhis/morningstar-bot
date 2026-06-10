@@ -117,12 +117,6 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
-    # @app_commands.command(name="", description="")
-    # @app_commands.describe(uid="")
-    # async def uid_command(self, ita: discord.Interaction, uid: str):
-    #     pass
-        
-
     @app_commands.command(name="uid", description="Set your Where Winds Meet in-game UID")
     @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
     async def uid_cmd(self, ita: discord.Interaction, uid: str):
@@ -140,6 +134,37 @@ class WWM(commands.GroupCog, name="wwm"):
         self.set_uid(ita.user.id, uid)
         await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
         
+
+
+    @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet UID")
+    @app_commands.describe(member="The member whose UID you want to look up")
+    async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
+        if not ita.user.guild_permissions.administrator:
+            await ita.response.send_message(
+                "You do not have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+
+        row = self.get_profile(member.id)
+
+        if row is None:
+            await ita.response.send_message(
+                f"No **Where Winds Meet** profile found for {member.mention}.",
+                ephemeral=True,
+            )
+            return
+
+        embed = discord.Embed(
+            title=f"Morningstar Server: Where Winds Meet Profile Lookup",
+            description=f"Profile for {member.mention}",
+            color=discord.Color.blurple(),
+        )
+        embed.add_field(name="UID", value=f"`{row['uid']}`", inline=False)
+        embed.add_field(name="Updated", value=row["updated_at"], inline=False)
+        embed.set_thumbnail(url=member.display_avatar.url)
+
+        await ita.response.send_message(embed=embed, ephemeral=True)
 
 
 
