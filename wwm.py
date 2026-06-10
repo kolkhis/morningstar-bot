@@ -130,11 +130,9 @@ class WWM(commands.GroupCog, name="wwm"):
         if not uid:
             await ita.response.send_message("Please provide a valid UID.", ephemeral=True)
             return
-
         if not uid.isdigit():
             await ita.response.send_message("Your UID should only contain numbers.", ephemeral=True)
             return
-
         if not len(uid) != 10:
             await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
             return
