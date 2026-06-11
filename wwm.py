@@ -8,11 +8,11 @@ from discord.ext import commands
 user_schema="""
 CREATE TABLE IF NOT EXISTS wwm_profiles (
     user_id INTEGER PRIMARY KEY,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
     uid TEXT,
     name TEXT,
     mythic_rank TEXT,
-    dps TEXT,
+    dps TEXT
 );
 """
 
@@ -127,7 +127,7 @@ class WWM(commands.GroupCog, name="wwm"):
         if not uid.isdigit():
             await ita.response.send_message("Your UID should only contain numbers.", ephemeral=True)
             return
-        if not len(uid) != 10:
+        if len(uid) != 10:
             await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
             return
 
@@ -145,7 +145,6 @@ class WWM(commands.GroupCog, name="wwm"):
                 ephemeral=True,
             )
             return
-
         row = self.get_profile(member.id)
 
         if row is None:
@@ -160,10 +159,15 @@ class WWM(commands.GroupCog, name="wwm"):
             description=f"Profile for {member.mention}",
             color=discord.Color.blurple(),
         )
-        embed.add_field(name="UID", value=f"`{row['uid']}`", inline=False)
-        embed.add_field(name="Updated", value=row["updated_at"], inline=False)
-        embed.set_thumbnail(url=member.display_avatar.url)
 
+        for n, val in zip(
+            ["UID", "Name", "Mythic Rank", "DPS"],
+            [row["uid"], row["name"], row["mythic_rank"], row["dps"]],
+        ):
+            if val is not None:
+                embed.add_field(name=n, value=val, inline=False)
+            else:
+                embed.add_field(name=n, value="Not set", inline=False)
         await ita.response.send_message(embed=embed, ephemeral=True)
 
 
