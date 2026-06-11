@@ -143,13 +143,13 @@ class WWM(commands.GroupCog, name="wwm"):
             return
         self.set_name(ita.user.id, name)
         await ita.response.send_message(f"Your in-game name has been saved as: {name}.")
-        
+
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
-        ita.defer(ephemeral=True)
+        await ita.response.defer(ephemeral=True)
         if not ita.user.guild_permissions.administrator:
-            await ita.response.send_message(
+            await ita.followup.send(
                 "You do not have permission to use this command.",
                 ephemeral=True,
             )
@@ -157,7 +157,7 @@ class WWM(commands.GroupCog, name="wwm"):
         row = self.get_profile(member.id)
 
         if row is None:
-            await ita.response.send_message(
+            await ita.followup.send(
                 f"No **Where Winds Meet** profile found for {member.mention}.",
                 ephemeral=True,
             )
@@ -177,7 +177,7 @@ class WWM(commands.GroupCog, name="wwm"):
                 embed.add_field(name=n, value=val, inline=False)
             else:
                 embed.add_field(name=n, value="Not set", inline=False)
-        await ita.response.send_message(embed=embed, ephemeral=True)
+        await ita.followup.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
