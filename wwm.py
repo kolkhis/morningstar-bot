@@ -20,7 +20,7 @@ class WWM(commands.GroupCog, name="wwm"):
     """command suite for the Where Winds Meet utility"""
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # self.init_db()
+        self.init_db()
 
     def init_db(self):
         """create table for WWM user info"""
@@ -139,6 +139,7 @@ class WWM(commands.GroupCog, name="wwm"):
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
+        ita.defer(ephemeral=True)
         if not ita.user.guild_permissions.administrator:
             await ita.response.send_message(
                 "You do not have permission to use this command.",
