@@ -167,12 +167,8 @@ class WWM(commands.GroupCog, name="wwm"):
         await ita.response.send_message(embed=embed, ephemeral=True)
 
 
-
-
-
-
-
-
+async def setup(bot: commands.Bot):
+    await bot.add_cog(WWM(bot))
 
 
 
