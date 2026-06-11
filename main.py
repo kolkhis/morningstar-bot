@@ -385,10 +385,18 @@ async def before_event_notification_loop():
 async def main() -> None:
     async with bot:
         print("Bot starting...")
+
         print("Loading extensions...")
-        await bot.load_extension("faction_quiz")
-        await bot.load_extension("wwm")
-        print("Extensions loaded.")
+        try:
+            await bot.load_extension("faction_quiz")
+            print ("Faction quiz extension loaded.")
+            await bot.load_extension("wwm")
+            print("WWM extension loaded.")
+            print("All extensions loaded.")
+
+        except Exception as e:
+            sys.stderr.write(f"Error loading extensions: {e}\n")
+            raise
 
         if not guild_event_notification_loop.is_running():
             guild_event_notification_loop.start()
