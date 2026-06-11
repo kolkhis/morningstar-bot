@@ -117,7 +117,7 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
-    @app_commands.command(name="uid", description="Set your Where Winds Meet in-game UID")
+    @app_commands.command(name="set-uid", description="Set your Where Winds Meet in-game UID")
     @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
     async def uid_cmd(self, ita: discord.Interaction, uid: str):
         uid = uid.strip()
@@ -130,12 +130,20 @@ class WWM(commands.GroupCog, name="wwm"):
         if len(uid) != 10:
             await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
             return
-
         self.set_uid(ita.user.id, uid)
         await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
         
 
-
+    @app_commands.command(name="set-name", description="Set your Where Winds Meet in-game name")
+    @app_commands.describe(name="Your Where Winds Meet in-game name")
+    async def name_cmd(self, ita: discord.Interaction, name: str):
+        name = name.strip()
+        if not name:
+            await ita.response.send_message("Please provide a valid name.", ephemeral=True)
+            return
+        self.set_name(ita.user.id, name)
+        await ita.response.send_message(f"Your in-game name has been saved as: {name}.")
+        
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
