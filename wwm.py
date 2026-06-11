@@ -136,8 +136,8 @@ class WWM(commands.GroupCog, name="wwm"):
         
 
 
-    @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet UID")
-    @app_commands.describe(member="The member whose UID you want to look up")
+    @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
+    @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
         if not ita.user.guild_permissions.administrator:
             await ita.response.send_message(
