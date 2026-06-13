@@ -2,6 +2,7 @@
 
 import sqlite3
 import discord
+import re
 from discord import app_commands
 from discord.ext import commands
 
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS wwm_profiles (
     uid TEXT,
     name TEXT,
     mythic_rank TEXT,
-    dps TEXT
+    dps TEXT,
+    build TEXT
 );
 """
 
@@ -27,6 +29,17 @@ class WWM(commands.GroupCog, name="wwm"):
         cursor = self.bot.db.cursor()
         cursor.execute(user_schema)
         self.bot.db.commit()
+        # TODO: Comment out after schema update
+        self.ensure_column_exists("wwm_profiles", "build", "TEXT")
+
+    def ensure_column_exists(self, table_name: str, column_name: str, column_type: str):
+        """add a column to a table if it doesn't already exist"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        columns = [row["name"] for row in cursor.fetchall()]
+        if column_name not in columns:
+            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}")
+            self.bot.db.commit()
 
     def get_profile(self, user_id: int):
         """return a user's WWM profile (DB row for that user)"""
@@ -143,6 +156,32 @@ class WWM(commands.GroupCog, name="wwm"):
             return
         self.set_name(ita.user.id, name)
         await ita.response.send_message(f"Your in-game name has been saved as: {name}.")
+
+    @app_commands.command(name="set-dps", description="Set your Where Winds Meet in-game dps")
+    @app_commands.describe(dps="Your Where Winds Meet in-game DPS (from a 1 minute test in the training dummy)")
+    async def set_dps_cmd(self, ita: discord.Interaction, dps: str):
+        dps = dps.strip()
+        if not dps:
+            await ita.response.send_message("Please provide valid DPS. (e.g., 41.1k)", ephemeral=True)
+            return
+        if not re.match(r"^\d+(\.?\d+)?[kK]?$", dps):
+            await ita.response.send_message("Please provide valid DPS. (e.g., 41.1k)", ephemeral=True)
+            return
+        self.set_dps(ita.user.id, dps)
+        await ita.response.send_message(f"Your in-game DPS has been saved as: {dps}.")
+
+    @app_commands.command(name="set-mythic-rank", description="Set your Where Winds Meet in-game Mythic PVP rank")
+    @app_commands.describe(mythic_rank="Your Where Winds Meet in-game Mythic PVP rank points (e.g., `2000`))")
+    async def dps_mythic_rank(self, ita: discord.Interaction, mythic_rank: str):
+        mythic_rank = mythic_rank.strip()
+        if not mythic_rank:
+            await ita.response.send_message("Please provide valid mythic points rank. (e.g., 1000)", ephemeral=True)
+            return
+        # if not re.match(r"^\d{3,5}", mythic_rank):
+        #     await ita.response.send_message("Please provide valid mythic points rank. (e.g., 1000)", ephemeral=True)
+        #     return
+        self.set_mythic_rank(ita.user.id, mythic_rank)
+        await ita.response.send_message(f"Your in-game DPS has been saved as: {mythic_rank}.")
 
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
