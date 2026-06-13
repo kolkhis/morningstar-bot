@@ -18,6 +18,25 @@ CREATE TABLE IF NOT EXISTS wwm_profiles (
 );
 """
 
+FIELD_NAMES: dict[str, str] = {
+    "UID": "uid",
+    "Name": "name",
+    "Build": "build",
+    "Mythic Rank": "mythic_rank",
+    "DPS": "dps",
+}
+
+WWM_BUILD_OPTIONS = { 
+    "Bamboocut Wind": "DPS",
+    "Bamboocut Dust": "DPS",
+    "Bellstrike Splendor": "DPS",
+    "Bellstrike Umbra": "DPS",
+    "Stonesplit Might": "Tank", 
+    "Stonesplit Strength": "DPS",
+    "Silkbind Jade": "DPS",
+    "Silkbind Deluge": "Healer",
+}
+
 class WWM(commands.GroupCog, name="wwm"):
     """command suite for the Where Winds Meet utility"""
     def __init__(self, bot: commands.Bot):
@@ -30,7 +49,7 @@ class WWM(commands.GroupCog, name="wwm"):
         cursor.execute(user_schema)
         self.bot.db.commit()
         # TODO: Comment out after schema update
-        self.ensure_column_exists("wwm_profiles", "build", "TEXT")
+        # self.ensure_column_exists("wwm_profiles", "build", "TEXT")
 
     def ensure_column_exists(self, table_name: str, column_name: str, column_type: str):
         """add a column to a table if it doesn't already exist"""
@@ -70,22 +89,6 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
-    def set_mythic_rank(self, user_id: int, rank: str):
-        """create or update the user's WWM mythic rank"""
-        cursor = self.bot.db.cursor()
-        cursor.execute(
-            """
-            INSERT INTO wwm_profiles (user_id, mythic_rank, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE
-                SET
-                mythic_rank = excluded.mythic_rank,
-                updated_at = excluded.updated_at
-            """,
-            (user_id, rank, discord.utils.utcnow().isoformat()),
-        )
-        self.bot.db.commit()
-
     def set_name(self, user_id: int, name: str):
         """create or update the user's WWM name"""
         cursor = self.bot.db.cursor()
@@ -99,6 +102,22 @@ class WWM(commands.GroupCog, name="wwm"):
                 updated_at = excluded.updated_at
             """,
             (user_id, name, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
+
+    def set_build(self, user_id: int, build: str):
+        """create or update the user's WWM build"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO wwm_profiles (user_id, build, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                build = excluded.build,
+                updated_at = excluded.updated_at
+            """,
+            (user_id, build, discord.utils.utcnow().isoformat()),
         )
         self.bot.db.commit()
 
@@ -117,6 +136,23 @@ class WWM(commands.GroupCog, name="wwm"):
             (user_id, dps, discord.utils.utcnow().isoformat()),
         )
         self.bot.db.commit()
+
+    def set_mythic_rank(self, user_id: int, rank: str):
+        """create or update the user's WWM mythic rank"""
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO wwm_profiles (user_id, mythic_rank, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                mythic_rank = excluded.mythic_rank,
+                updated_at = excluded.updated_at
+            """,
+            (user_id, rank, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
+
 
     def delete_profile(self, user_id: int):
         """delete a user's profile frome DB"""
@@ -183,6 +219,15 @@ class WWM(commands.GroupCog, name="wwm"):
         self.set_mythic_rank(ita.user.id, mythic_rank)
         await ita.response.send_message(f"Your in-game DPS has been saved as: {mythic_rank}.")
 
+    @app_commands.command(name="set-build", description="Set your Where Winds Meet build")
+    async def set_build_cmd(self, ita: discord.Interaction):
+        embed = discord.Embed(
+            title="Select Your Build",
+            description="Please select your Where Winds Meet build from the dropdown menu below.",
+            color=discord.Color.blurple(),
+        )
+        await ita.response.send_message(embed=embed, view=WWMBuildView(self, ita.user.id), ephemeral=True)
+
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
@@ -208,16 +253,58 @@ class WWM(commands.GroupCog, name="wwm"):
             color=discord.Color.blurple(),
         )
 
-        for n, val in zip(
-            ["UID", "Name", "Mythic Rank", "DPS"],
-            [row["uid"], row["name"], row["mythic_rank"], row["dps"]],
-        ):
+        for n, val in FIELD_NAMES.items():
             if val is not None:
-                embed.add_field(name=n, value=val, inline=False)
+                embed.add_field(name=n, value=row[val], inline=False)
             else:
                 embed.add_field(name=n, value="Not set", inline=False)
         await ita.followup.send(embed=embed, ephemeral=True)
 
+
+class WWMBuildSelect(discord.ui.Select):
+    def __init__(self, cog: "WWM", user_id: int):
+        self.cog = cog
+        self.user_id = user_id
+
+        options = [
+            discord.SelectOption(label=build, value=build)
+            for build in WWM_BUILD_OPTIONS
+        ]
+
+        super().__init__(
+            placeholder="Choose your Where Winds Meet build.",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "This build selector is not for you.",
+                ephemeral=True,
+            )
+            return
+
+        selected_build = self.values[0]
+        self.cog.set_build(interaction.user.id, selected_build)
+
+        embed = discord.Embed(
+            title="Build Saved",
+            description=f"Your Where Winds Meet build has been saved as:\n\n**{selected_build}**",
+            color=discord.Color.green(),
+        )
+
+        await interaction.response.edit_message(
+            embed=embed,
+            view=None,
+        )
+
+
+class WWMBuildView(discord.ui.View):
+    def __init__(self, cog: "WWM", user_id: int):
+        super().__init__(timeout=300)
+        self.add_item(WWMBuildSelect(cog, user_id))
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(WWM(bot))
