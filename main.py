@@ -272,12 +272,14 @@ async def daily_guild_events_cmd(ita: discord.Interaction):
             timestamp = discord.utils.format_dt(event_dt, style="t")
             if target_weekday == today.weekday():
                 lines.append(f"- **{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
+
         value = "\n".join(lines)
-        embed.add_field(
-            name=event_name,
-            value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
-            inline=False,
-        )
+        if value:
+            embed.add_field(
+                name=event_name,
+                value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
+                inline=False,
+            )
     await ita.response.send_message(embed=embed)
     return
 
