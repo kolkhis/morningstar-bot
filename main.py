@@ -43,9 +43,12 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         },
     "Guild Tower (Skyward Bond)": {
         "Thursday": "14:00",
-    }
+        "Friday": "14:00",
+    },
+    "Event Signup": {
+        "Monday": "15:00",
+    },
 }
-
 
 DAY_TO_WEEKDAY = {
     "Monday": 0,
@@ -216,6 +219,7 @@ async def giveaway_status_cmd(ita: discord.Interaction):
         ephemeral=True
     )
 
+# TODO: Add removal functionality for old messages to prevent clutter, or have a pinned message that gets updated with the current events instead of posting new messages each time
 
 ###### GUILD EVENT NOTIFICATIONS ######
 # Command to display a Discord timestamp for times of the guild events
@@ -233,7 +237,6 @@ async def guild_events_cmd(ita: discord.Interaction):
 
         for day, time_str in schedule.items():
             event_time = dt.datetime.strptime(time_str, "%H:%M").time()
-            # target_weekday = dt.datetime.strptime(day, "%A").weekday()
             target_weekday = DAY_TO_WEEKDAY[day]
             days_ahead = (target_weekday - today.weekday()) % 7
             target_date = today + dt.timedelta(days=days_ahead)
@@ -248,6 +251,7 @@ async def guild_events_cmd(ita: discord.Interaction):
             value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
             inline=False,
         )
+
     await ita.response.send_message(embed=embed)
     return
 
@@ -375,7 +379,19 @@ Guild Hero Realm is today, weekly at {current_day} at {timestamp}.
 To participate:
 Log in and send a message in the guild chat for an invite!
 """)
+        elif event_name == "Event Signup":
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: Weekly **{event_name}** has started!
+Event signups are posted weekly at {current_day} at {timestamp}.
+
+Check the messages from the Raid Bot in #guild-events-schedule for details on the events 
+happening this week and sign up for the ones you want to participate in.
+""")
+
     return
+
+
+
 
 
 @guild_event_notification_loop.before_loop
