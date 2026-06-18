@@ -37,6 +37,7 @@ WWM_BUILD_OPTIONS = {
     "Silkbind Deluge": "Healer",
 }
 
+
 class WWM(commands.GroupCog, name="wwm"):
     """command suite for the Where Winds Meet utility"""
     def __init__(self, bot: commands.Bot):
@@ -301,9 +302,30 @@ class WWMBuildSelect(discord.ui.Select):
         )
 
 
-class WWMBuildView(discord.ui.View):
+    # async def set_profile_field(self, user_id: int, field: str, value: str):
+    #     """helper function to set a specific field in the user's profile"""
+    #     if field == "build":
+    #         self.cog.set_build(user_id, value)
+    #     elif field == "dps":
+    #         self.cog.set_dps(user_id, value)
+    #     elif field == "mythic_rank":
+    #         self.cog.set_mythic_rank(user_id, value)
+    #     elif field == "name":
+    #         self.cog.set_name(user_id, value)
+    #     elif field == "uid":
+    #         self.cog.set_uid(user_id, value)
+
+
+# class WWMBuildView(discord.ui.View):
+#     def __init__(self, cog: "WWM", user_id: int):
+#         super().__init__(timeout=300)
+#         self.add_item(WWMBuildSelect(cog, user_id))
+
+class WWMProfileView(discord.ui.View):
     def __init__(self, cog: "WWM", user_id: int):
         super().__init__(timeout=300)
+        self.cog = cog
+        self.user_id = user_id
         self.add_item(WWMBuildSelect(cog, user_id))
 
 async def setup(bot: commands.Bot):
