@@ -359,12 +359,16 @@ async def guild_event_notification_loop():
             dt.datetime.combine(dt.date.today(), event_time),
             style="t",
         )
+        relative_timestamp = discord.utils.format_dt(
+            dt.datetime.combine(dt.date.today(), event_time),
+            style="R",
+        )
 
 
         if event_name == "Guild Party":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready!
-Guild Party is today at {timestamp}, your local time.
+Guild Party is today at {timestamp} ({relative_timestamp}), your local time.
 
 To participate:
 Go to the guild base (open guild menu and hit space) and press K to inject aura (it's free and extends party duration!).
@@ -373,7 +377,7 @@ Go to the guild base (open guild menu and hit space) and press K to inject aura 
         elif event_name == "Breaking Army":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Breaking Army is today at {timestamp}, your local time.
+Breaking Army is today at {timestamp} ({relative_timestamp}), your local time.
 
 To participate:
 Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!
@@ -382,7 +386,7 @@ Go to the guild menu, select "Events", find Breaking Army and select it to telep
         elif event_name == "Showdown":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Showdown is today, weekly on {current_day}, at {timestamp}, your local time.
+Showdown is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}), your local time.
 
 To participate:
 Go to the guild base, turn left and find the arena right outside.
@@ -391,14 +395,14 @@ Go to the guild base, turn left and find the arena right outside.
         elif event_name == "Guild War":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Guild War is today, weekly on {current_day}, at {timestamp}.
+Guild War is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}).
 Get ready to defend our honor!
 """)
 
         elif event_name == "Guild Hero Realm":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Guild Hero Realm is today, weekly at {current_day} at {timestamp}.
+Guild Hero Realm is today, weekly at {current_day} at {timestamp} ({relative_timestamp}).
 
 To participate:
 Log in and send a message in the guild chat for an invite!
@@ -426,7 +430,6 @@ async def before_event_notification_loop():
 async def main() -> None:
     async with bot:
         print("Bot starting...")
-
         print("Loading extensions...")
         try:
             await bot.load_extension("faction_quiz")
@@ -434,11 +437,9 @@ async def main() -> None:
             await bot.load_extension("wwm")
             print("WWM extension loaded.")
             print("All extensions loaded.")
-
         except Exception as e:
             sys.stderr.write(f"Error loading extensions: {e}\n")
             raise
-
         if not guild_event_notification_loop.is_running():
             guild_event_notification_loop.start()
 
