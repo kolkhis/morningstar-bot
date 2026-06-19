@@ -302,31 +302,31 @@ class WWMBuildSelect(discord.ui.Select):
         )
 
 
-    # async def set_profile_field(self, user_id: int, field: str, value: str):
-    #     """helper function to set a specific field in the user's profile"""
-    #     if field == "build":
-    #         self.cog.set_build(user_id, value)
-    #     elif field == "dps":
-    #         self.cog.set_dps(user_id, value)
-    #     elif field == "mythic_rank":
-    #         self.cog.set_mythic_rank(user_id, value)
-    #     elif field == "name":
-    #         self.cog.set_name(user_id, value)
-    #     elif field == "uid":
-    #         self.cog.set_uid(user_id, value)
+    async def set_profile_field(self, user_id: int, field: str, value: str):
+        """helper function to set a specific field in the user's profile"""
+        allowed_fields = FIELD_NAMES.values()
+        if field not in allowed_fields:
+            raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(allowed_fields)}")
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            f"""
+            INSERT INTO wwm_profiles (user_id, {field}, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                {field} = excluded.{field},
+                updated_at = excluded.updated_at
+            """,
+            (user_id, value, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
 
-
-# class WWMBuildView(discord.ui.View):
+# class WWMProfileView(discord.ui.View):
 #     def __init__(self, cog: "WWM", user_id: int):
 #         super().__init__(timeout=300)
+#         self.cog = cog
+#         self.user_id = user_id
 #         self.add_item(WWMBuildSelect(cog, user_id))
-
-class WWMProfileView(discord.ui.View):
-    def __init__(self, cog: "WWM", user_id: int):
-        super().__init__(timeout=300)
-        self.cog = cog
-        self.user_id = user_id
-        self.add_item(WWMBuildSelect(cog, user_id))
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(WWM(bot))
