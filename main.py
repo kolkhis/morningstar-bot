@@ -236,7 +236,8 @@ async def weekly_guild_events_cmd(ita: discord.Interaction):
             target_date = today + dt.timedelta(days=days_ahead)
             event_dt = dt.datetime.combine(target_date, event_time)
             timestamp = discord.utils.format_dt(event_dt, style="t")
-            lines.append(f"- **{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
+            relative_timestamp = discord.utils.format_dt(event_dt, style="R")
+            lines.append(f"- **{day}** at {timestamp} ({relative_timestamp})" + (" **(today)**" if target_weekday == today.weekday() else ""))
         # Join all day/time entries for this event
         value = "\n".join(lines)
         embed.add_field(
@@ -266,8 +267,9 @@ async def daily_guild_events_cmd(ita: discord.Interaction):
             target_date = today + dt.timedelta(days=days_ahead)
             event_dt = dt.datetime.combine(target_date, event_time)
             timestamp = discord.utils.format_dt(event_dt, style="t")
+            relative_timestamp = discord.utils.format_dt(event_dt, style="R")
             if target_weekday == today.weekday():
-                lines.append(f"- **{day}** at {timestamp}" + (" **(today)**" if target_weekday == today.weekday() else ""))
+                lines.append(f"- **{day}** at {timestamp} ({relative_timestamp})" + (" **(today)**" if target_weekday == today.weekday() else ""))
 
         value = "\n".join(lines)
         if value:
