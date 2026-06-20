@@ -193,6 +193,13 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
+    # TODO(feat): Add optional parameter to view another user's profile, and (this
+    # only for admins) to modify or delete another user's profile
+    # @app_commands.command(name="profile", description="View or edit your Where Winds Meet profile")
+    # @app_commands.describe(member="The member whose profile you want to view or edit. Leave blank to view/edit your own profile.")
+
+    
+
     @app_commands.command(name="set-uid", description="Set your Where Winds Meet in-game UID")
     @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
     async def uid_cmd(self, ita: discord.Interaction, uid: str):
@@ -347,12 +354,145 @@ class WWMBuildSelect(discord.ui.Select):
         )
         self.bot.db.commit()
 
-# class WWMProfileView(discord.ui.View):
-#     def __init__(self, cog: "WWM", user_id: int):
-#         super().__init__(timeout=300)
-#         self.cog = cog
-#         self.user_id = user_id
-#         self.add_item(WWMBuildSelect(cog, user_id))
+class WWMProfileView(discord.ui.View):
+    def __init__(self, cog: "WWM", user_id: int):
+        super().__init__(timeout=300)
+        self.cog = cog
+        self.user_id = user_id
+
+    async def ita_check(self, ita: discord.Interaction) -> bool:
+        if ita.user.id != self.user_id:
+            await ita.response.send_message(
+                "This profile editor is not for you.",
+                ephemeral=True,
+            )
+            return False
+        return True
+
+    async def refresh_profile(self, ita: discord.Interaction) -> None:
+        row = self.cog.get_profile(self.user_id)
+        embed = self.cog.build_profile_embed(ita.user, row)
+        await ita.response.edit_message(
+            embed=embed,
+            view=self,
+        )
+
+    @discord.ui.button(label="Edit UID", style=discord.ButtonStyle.primary)
+    async def edit_uid(self, ita: discord.Interaction, button: discord.ui.Button):
+        await ita.response.send_modal(
+            WWMProfileFieldModal(
+                cog=self.cog,
+                user_id=self.user_id,
+                field_name="uid",
+                title="Edit UID",
+                label="Where Winds Meet UID",
+                placeholder="Enter your 10-digit UID",
+                max_length=10,
+            )
+        )
+
+    @discord.ui.button(label="Edit Name", style=discord.ButtonStyle.primary)
+    async def edit_name(self, ita: discord.Interaction, button: discord.ui.Button):
+        await ita.response.send_modal(
+            WWMProfileFieldModal(
+                cog=self.cog,
+                user_id=self.user_id,
+                field_name="name",
+                title="Edit In-Game Name",
+                label="In-game name",
+                placeholder="Enter your character name",
+                max_length=64,
+            )
+        )
+
+    @discord.ui.button(label="Edit Mythic Rank", style=discord.ButtonStyle.primary)
+    async def edit_mythic_rank(self, ita: discord.Interaction, button: discord.ui.Button):
+        await ita.response.send_modal(
+            WWMProfileFieldModal(
+                cog=self.cog,
+                user_id=self.user_id,
+                field_name="mythic_rank",
+                title="Edit Mythic Rank",
+                label="Mythic rank",
+                placeholder="Example: Mythic 5",
+                max_length=32,
+            )
+        )
+
+    @discord.ui.button(label="Edit DPS", style=discord.ButtonStyle.primary)
+    async def edit_dps(self, ita: discord.Interaction, button: discord.ui.Button):
+        await ita.response.send_modal(
+            WWMProfileFieldModal(
+                cog=self.cog,
+                user_id=self.user_id,
+                field_name="dps",
+                title="Edit DPS",
+                label="DPS",
+                placeholder="Example: 45k",
+                max_length=32,
+            )
+        )
+    @discord.ui.button(label="Choose Build", style=discord.ButtonStyle.success)
+    async def choose_build(self, ita: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Choose Your Build",
+            description="Select your Where Winds Meet build from the dropdown below.",
+            color=discord.Color.green(),
+        )
+        await ita.response.edit_message(
+            embed=embed,
+            view=WWMBuildView(self.cog, self.user_id),
+        )
+
+class WWMBuildView(discord.ui.View):
+    def __init__(self, cog: "WWM", user_id: int):
+        super().__init__(timeout=300)
+        self.cog = cog
+        self.user_id = user_id
+        self.add_item(WWMBuildSelect(cog, user_id))
+
+class WWMProfileFieldModal(discord.ui.Modal):
+    def __init__(
+        self,
+        cog: "WWM",
+        user_id: int,
+        field_name: str,
+        title: str,
+        label: str,
+        placeholder: str,
+        max_length: int,
+    ):
+        super().__init__(title=title)
+        self.cog = cog
+        self.user_id = user_id
+        self.field_name = field_name
+        self.value_input = discord.ui.TextInput(
+            label=label,
+            placeholder=placeholder,
+            required=True,
+            max_length=max_length,
+        )
+        self.add_item(self.value_input)
+
+    async def on_submit(self, ita: discord.Interaction):
+        if ita.user.id != self.user_id:
+            await ita.response.send_message("This profile editor is not for you.", ephemeral=True)
+            return
+        value = str(self.value_input.value).strip()
+        if not value:
+            await ita.response.send_message("Value cannot be empty.", ephemeral=True)
+            return
+        if self.field_name == "uid":
+            if not value.isdigit():
+                await ita.response.send_message("Your UID should only contain numbers.", ephemeral=True)
+                return
+            if len(value) != 10:
+                await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
+                return
+        self.cog.set_profile_field(user_id=self.user_id, field_name=self.field_name, value=value)
+        row = self.cog.get_profile(self.user_id)
+        embed = self.cog.build_profile_embed(ita.user, row)
+        await ita.response.edit_message(embed=embed, view=WWMProfileView(self.cog, self.user_id))
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(WWM(bot))
