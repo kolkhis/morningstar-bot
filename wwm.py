@@ -154,6 +154,32 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
+    def build_profile_embed(
+        self,
+        user: discord.User | discord.Member,
+        row: sqlite3.Row | None,
+    ) -> discord.Embed:
+        embed = discord.Embed(
+            title="Morningstar Server: Where Winds Meet Profile",
+            description=f"Profile for {user.mention}",
+            color=discord.Color.blurple(),
+        )
+
+        values = {}
+        if row is None:
+            for name in FIELD_NAMES.keys():
+                values[name] = "Not set"
+        else:
+            for name, field in FIELD_NAMES.items():
+                values[name] = row[field] if row[field] else "Not set"
+
+        for name, value in values.items():
+            embed.add_field(name=name, value=value, inline=False)
+
+        embed.set_thumbnail(url=user.display_avatar.url)
+        embed.set_footer(text="Use the buttons below to edit your profile.")
+
+        return embed
 
     def delete_profile(self, user_id: int):
         """delete a user's profile frome DB"""
