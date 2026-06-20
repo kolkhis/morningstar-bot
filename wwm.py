@@ -74,6 +74,25 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         return cursor.fetchone()
 
+    async def set_profile_field(self, user_id: int, field: str, value: str):
+        """helper function to set a specific field in the user's profile"""
+        allowed_fields = FIELD_NAMES.values()
+        if field not in allowed_fields:
+            raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(allowed_fields)}")
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            f"""
+            INSERT INTO wwm_profiles (user_id, {field}, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                {field} = excluded.{field},
+                updated_at = excluded.updated_at
+            """,
+            (user_id, value, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
+
     def set_uid(self, user_id: int, uid: str):
         """create or update a user's wwm UID"""
         cursor = self.bot.db.cursor()
@@ -334,25 +353,6 @@ class WWMBuildSelect(discord.ui.Select):
             view=None,
         )
 
-
-    async def set_profile_field(self, user_id: int, field: str, value: str):
-        """helper function to set a specific field in the user's profile"""
-        allowed_fields = FIELD_NAMES.values()
-        if field not in allowed_fields:
-            raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(allowed_fields)}")
-        cursor = self.bot.db.cursor()
-        cursor.execute(
-            f"""
-            INSERT INTO wwm_profiles (user_id, {field}, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE
-                SET
-                {field} = excluded.{field},
-                updated_at = excluded.updated_at
-            """,
-            (user_id, value, discord.utils.utcnow().isoformat()),
-        )
-        self.bot.db.commit()
 
 class WWMProfileView(discord.ui.View):
     def __init__(self, cog: "WWM", user_id: int):
