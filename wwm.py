@@ -76,9 +76,8 @@ class WWM(commands.GroupCog, name="wwm"):
 
     async def set_profile_field(self, user_id: int, field: str, value: str):
         """helper function to set a specific field in the user's profile"""
-        allowed_fields = FIELD_NAMES.values()
-        if field not in allowed_fields:
-            raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(allowed_fields)}")
+        if field not in FIELD_NAMES.values():
+            raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(FIELD_NAMES.values())}")
         cursor = self.bot.db.cursor()
         cursor.execute(
             f"""
