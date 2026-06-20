@@ -49,8 +49,9 @@ class WWM(commands.GroupCog, name="wwm"):
         cursor = self.bot.db.cursor()
         cursor.execute(user_schema)
         self.bot.db.commit()
-        # TODO: Comment out after schema update
-        # self.ensure_column_exists("wwm_profiles", "build", "TEXT")
+        # make sure all columns exist in case the schema is updated with new fields
+        for col in FIELD_NAMES.values():
+            self.ensure_column_exists("wwm_profiles", col, "TEXT")
 
     def ensure_column_exists(self, table_name: str, column_name: str, column_type: str):
         """add a column to a table if it doesn't already exist"""
