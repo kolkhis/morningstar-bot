@@ -214,9 +214,21 @@ class WWM(commands.GroupCog, name="wwm"):
 
     # TODO(feat): Add optional parameter to view another user's profile, and (this
     # only for admins) to modify or delete another user's profile
-    # @app_commands.command(name="profile", description="View or edit your Where Winds Meet profile")
-    # @app_commands.describe(member="The member whose profile you want to view or edit. Leave blank to view/edit your own profile.")
+    @app_commands.command(name="profile", description="View or edit your Where Winds Meet profile")
+    @app_commands.describe(member="The member whose profile you want to view or edit. Leave blank to view/edit your own profile.")
+    async def profile_cmd(self, ita: discord.Interaction, member: discord.Member | None = None):
+        # TODO: If member is provided, check if ita.user has permission to view/edit other profiles
+        #   - View should be allowed globally
+        #   - Edit should only be allowed for admins (use a different view that
+        #     allows selecting which field to edit?)
+        row = self.get_profile(ita.user.id)
+        embed = self.build_profile_embed(ita.user, row)
 
+        await ita.response.send_message(
+            embed=embed,
+            view=WWMProfileView(self, ita.user.id),
+            ephemeral=True,
+        )
     
 
     @app_commands.command(name="set-uid", description="Set your Where Winds Meet in-game UID")
