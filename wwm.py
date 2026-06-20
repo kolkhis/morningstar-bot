@@ -372,7 +372,7 @@ class WWMProfileView(discord.ui.View):
         self.cog = cog
         self.user_id = user_id
 
-    async def ita_check(self, ita: discord.Interaction) -> bool:
+    async def interaction_check(self, ita: discord.Interaction) -> bool:
         if ita.user.id != self.user_id:
             await ita.response.send_message(
                 "This profile editor is not for you.",
@@ -501,7 +501,11 @@ class WWMProfileFieldModal(discord.ui.Modal):
             if len(value) != 10:
                 await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
                 return
-        self.cog.set_profile_field(user_id=self.user_id, field_name=self.field_name, value=value)
+        await self.cog.set_profile_field(
+            user_id=self.user_id,
+            field=self.field_name,
+            value=value,
+        )
         row = self.cog.get_profile(self.user_id)
         embed = self.cog.build_profile_embed(ita.user, row)
         await ita.response.edit_message(embed=embed, view=WWMProfileView(self.cog, self.user_id))
