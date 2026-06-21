@@ -221,15 +221,37 @@ class WWM(commands.GroupCog, name="wwm"):
         #   - View should be allowed globally
         #   - Edit should only be allowed for admins (use a different view that
         #     allows selecting which field to edit?)
-        row = self.get_profile(ita.user.id)
-        embed = self.build_profile_embed(ita.user, row)
+        if member is not None and member.id != ita.user.id:
+            if not ita.user.guild_permissions.administrator:
+                await ita.response.send_message(
+                    "You do not have permission to view or edit other members' profiles.",
+                    ephemeral=True,
+                )
+                return
+            target_user = member
+        else:
+            target_user = ita.user
 
+        row = self.get_profile(target_user.id)
+        embed = self.build_profile_embed(target_user, row)
         await ita.response.send_message(
             embed=embed,
-            view=WWMProfileView(self, ita.user.id),
+            view=WWMProfileView(
+                self,
+                target_user.id, 
+                editor_user_id=ita.user.id,
+            ),
             ephemeral=True,
         )
     
+        # row = self.get_profile(ita.user.id)
+        # embed = self.build_profile_embed(ita.user, row)
+        # await ita.response.send_message(
+        #     embed=embed,
+        #     view=WWMProfileView(self, ita.user.id),
+        #     ephemeral=True,
+        # )
+
 
     @app_commands.command(name="set-uid", description="Set your Where Winds Meet in-game UID")
     @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
@@ -372,7 +394,7 @@ class WWMBuildSelect(discord.ui.Select):
 
 
 class WWMProfileView(discord.ui.View):
-    def __init__(self, cog: "WWM", user_id: int):
+    def __init__(self, cog: "WWM", user_id: int, editor_user_id: int | None = None):
         super().__init__(timeout=300)
         self.cog = cog
         self.user_id = user_id
