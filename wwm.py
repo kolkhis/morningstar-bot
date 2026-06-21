@@ -317,14 +317,9 @@ class WWM(commands.GroupCog, name="wwm"):
             description="Please select your Where Winds Meet build from the dropdown menu below.",
             color=discord.Color.blurple(),
         )
-        # await ita.response.send_message(embed=embed, view=WWMBuildView(self, ita.user.id), ephemeral=True)
         await ita.response.send_message(
             embed=embed,
-            view=WWMBuildView(
-                cog=self,
-                target_user=ita.user,
-                editor_user_id=ita.user.id,
-            ),
+            view=WWMBuildView(cog=self, target_user=ita.user, editor_user_id=ita.user.id),
             ephemeral=True,
         )
 
@@ -333,12 +328,12 @@ class WWM(commands.GroupCog, name="wwm"):
     @app_commands.describe(member="The member whose profile you want to look up")
     async def lookup_cmd(self, ita: discord.Interaction, member: discord.Member):
         await ita.response.defer(ephemeral=True)
-        if not ita.user.guild_permissions.administrator:
-            await ita.followup.send(
-                "You do not have permission to use this command.",
-                ephemeral=True,
-            )
-            return
+        # if not ita.user.guild_permissions.administrator:
+        #     await ita.followup.send(
+        #         "You do not have permission to use this command.",
+        #         ephemeral=True,
+        #     )
+        #     return
         row = self.get_profile(member.id)
 
         if row is None:
@@ -353,6 +348,7 @@ class WWM(commands.GroupCog, name="wwm"):
             description=f"Profile for {member.mention}",
             color=discord.Color.blurple(),
         )
+        embed.set_thumbnail(url=member.display_avatar.url)
 
         for n, val in FIELD_NAMES.items():
             if val is not None:
