@@ -317,7 +317,17 @@ class WWM(commands.GroupCog, name="wwm"):
             description="Please select your Where Winds Meet build from the dropdown menu below.",
             color=discord.Color.blurple(),
         )
-        await ita.response.send_message(embed=embed, view=WWMBuildView(self, ita.user.id), ephemeral=True)
+        # await ita.response.send_message(embed=embed, view=WWMBuildView(self, ita.user.id), ephemeral=True)
+        await ita.response.send_message(
+            embed=embed,
+            view=WWMBuildView(
+                cog=self,
+                target_user=ita.user,
+                editor_user_id=ita.user.id,
+            ),
+            ephemeral=True,
+        )
+
 
     @app_commands.command(name="lookup", description="Look up a member's Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to look up")
@@ -352,14 +362,26 @@ class WWM(commands.GroupCog, name="wwm"):
         await ita.followup.send(embed=embed, ephemeral=True)
 
 
+
 class WWMBuildSelect(discord.ui.Select):
-    def __init__(self, cog: "WWM", user_id: int):
+    def __init__(
+        self,
+        cog: "WWM",
+        target_user: discord.User | discord.Member,
+        editor_user_id: int,
+    ):
         self.cog = cog
-        self.user_id = user_id
+        self.target_user = target_user
+        self.target_user_id = target_user.id
+        self.editor_user_id = editor_user_id
 
         options = [
-            discord.SelectOption(label=build, value=build)
-            for build in WWM_BUILD_OPTIONS
+            discord.SelectOption(
+                label=build,
+                value=build,
+                description=role,
+            )
+            for build, role in WWM_BUILD_OPTIONS.items()
         ]
 
         super().__init__(
@@ -370,7 +392,7 @@ class WWMBuildSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
+        if interaction.user.id != self.editor_user_id:
             await interaction.response.send_message(
                 "This build selector is not for you.",
                 ephemeral=True,
@@ -378,48 +400,52 @@ class WWMBuildSelect(discord.ui.Select):
             return
 
         selected_build = self.values[0]
-        # self.cog.set_build(interaction.user.id, selected_build)
-        await self.cog.set_profile_field(interaction.user.id, "build", selected_build)
 
-        embed = discord.Embed(
-            title="Build Saved",
-            description=f"Your Where Winds Meet build has been saved as:\n\n**{selected_build}**",
-            color=discord.Color.green(),
+        await self.cog.set_profile_field(
+            user_id=self.target_user_id,
+            field="build",
+            value=selected_build,
         )
+
+        row = self.cog.get_profile(self.target_user_id)
+        embed = self.cog.build_profile_embed(self.target_user, row)
 
         await interaction.response.edit_message(
             embed=embed,
-            view=None,
+            view=WWMProfileView(
+                cog=self.cog,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
+            ),
         )
-
 
 class WWMProfileView(discord.ui.View):
     def __init__(
         self,
         cog: "WWM",
         target_user: discord.User | discord.Member,
-        editor_user_id: int
+        editor_user_id: int,
     ):
         super().__init__(timeout=300)
         self.cog = cog
         self.target_user = target_user
         self.target_user_id = target_user.id
         self.editor_user_id = editor_user_id
-        # self.target_user = 
 
     async def interaction_check(self, ita: discord.Interaction) -> bool:
-
         if ita.user.id != self.editor_user_id:
             await ita.response.send_message(
                 "This profile editor is not for you.",
                 ephemeral=True,
             )
             return False
+
         return True
 
     async def refresh_profile(self, ita: discord.Interaction) -> None:
         row = self.cog.get_profile(self.target_user_id)
         embed = self.cog.build_profile_embed(self.target_user, row)
+
         await ita.response.edit_message(
             embed=embed,
             view=self,
@@ -430,7 +456,8 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.target_user_id,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
                 field_name="uid",
                 title="Edit UID",
                 label="Where Winds Meet UID",
@@ -444,7 +471,8 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.target_user_id,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
                 field_name="name",
                 title="Edit In-Game Name",
                 label="In-game name",
@@ -458,7 +486,8 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.target_user_id,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
                 field_name="mythic_rank",
                 title="Edit Mythic Rank",
                 label="Mythic rank",
@@ -472,7 +501,8 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.target_user_id,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
                 field_name="dps",
                 title="Edit DPS",
                 label="DPS",
@@ -480,6 +510,7 @@ class WWMProfileView(discord.ui.View):
                 max_length=32,
             )
         )
+
     @discord.ui.button(label="Choose Build", style=discord.ButtonStyle.success)
     async def choose_build(self, ita: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
@@ -487,17 +518,46 @@ class WWMProfileView(discord.ui.View):
             description="Select your Where Winds Meet build from the dropdown below.",
             color=discord.Color.green(),
         )
+
         await ita.response.edit_message(
             embed=embed,
-            view=WWMBuildView(self.cog, self.user_id),
+            view=WWMBuildView(
+                cog=self.cog,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
+            ),
         )
 
 class WWMBuildView(discord.ui.View):
-    def __init__(self, cog: "WWM", user_id: int):
+    def __init__(
+        self,
+        cog: "WWM",
+        target_user: discord.User | discord.Member,
+        editor_user_id: int,
+    ):
         super().__init__(timeout=300)
         self.cog = cog
-        self.user_id = user_id
-        self.add_item(WWMBuildSelect(cog, user_id))
+        self.target_user = target_user
+        self.target_user_id = target_user.id
+        self.editor_user_id = editor_user_id
+
+        self.add_item(
+            WWMBuildSelect(
+                cog=cog,
+                target_user=target_user,
+                editor_user_id=editor_user_id,
+            )
+        )
+
+    async def interaction_check(self, ita: discord.Interaction) -> bool:
+        if ita.user.id != self.editor_user_id:
+            await ita.response.send_message(
+                "This build selector is not for you.",
+                ephemeral=True,
+            )
+            return False
+
+        return True
 
 # TODO(refactor): Take in a discord.Member/User object instead of user_id to
 # check if the edit is being made by an admin or the profile owner, and to update 
@@ -506,7 +566,8 @@ class WWMProfileFieldModal(discord.ui.Modal):
     def __init__(
         self,
         cog: "WWM",
-        user_id: int,
+        target_user: discord.User | discord.Member,
+        editor_user_id: int,
         field_name: str,
         title: str,
         label: str,
@@ -514,25 +575,35 @@ class WWMProfileFieldModal(discord.ui.Modal):
         max_length: int,
     ):
         super().__init__(title=title)
+
         self.cog = cog
-        self.user_id = user_id
+        self.target_user = target_user
+        self.target_user_id = target_user.id
+        self.editor_user_id = editor_user_id
         self.field_name = field_name
+
         self.value_input = discord.ui.TextInput(
             label=label,
             placeholder=placeholder,
             required=True,
             max_length=max_length,
         )
+
         self.add_item(self.value_input)
 
     async def on_submit(self, ita: discord.Interaction):
-        if ita.user.id != self.user_id:
-            await ita.response.send_message("This profile editor is not for you.", ephemeral=True)
+        if ita.user.id != self.editor_user_id:
+            await ita.response.send_message(
+                "This profile editor is not for you.",
+                ephemeral=True,
+            )
             return
+
         value = str(self.value_input.value).strip()
         if not value:
             await ita.response.send_message("Value cannot be empty.", ephemeral=True)
             return
+
         if self.field_name == "uid":
             if not value.isdigit():
                 await ita.response.send_message("Your UID should only contain numbers.", ephemeral=True)
@@ -540,15 +611,20 @@ class WWMProfileFieldModal(discord.ui.Modal):
             if len(value) != 10:
                 await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
                 return
-        await self.cog.set_profile_field(
-            user_id=self.user_id,
-            field=self.field_name,
-            value=value,
-        )
-        row = self.cog.get_profile(self.user_id)
-        embed = self.cog.build_profile_embed(ita.user, row)
-        await ita.response.edit_message(embed=embed, view=WWMProfileView(self.cog, self.user_id))
 
+        await self.cog.set_profile_field(user_id=self.target_user_id, field=self.field_name,value=value)
+
+        row = self.cog.get_profile(self.target_user_id)
+        embed = self.cog.build_profile_embed(self.target_user, row)
+
+        await ita.response.edit_message(
+            embed=embed,
+            view=WWMProfileView(
+                cog=self.cog,
+                target_user=self.target_user,
+                editor_user_id=self.editor_user_id,
+            ),
+        )
 async def setup(bot: commands.Bot):
     await bot.add_cog(WWM(bot))
 
