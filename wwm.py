@@ -238,7 +238,7 @@ class WWM(commands.GroupCog, name="wwm"):
             embed=embed,
             view=WWMProfileView(
                 self,
-                target_user.id, 
+                target_user=target_user, 
                 editor_user_id=ita.user.id,
             ),
             ephemeral=True,
@@ -394,13 +394,22 @@ class WWMBuildSelect(discord.ui.Select):
 
 
 class WWMProfileView(discord.ui.View):
-    def __init__(self, cog: "WWM", user_id: int, editor_user_id: int | None = None):
+    def __init__(
+        self,
+        cog: "WWM",
+        target_user: discord.User | discord.Member,
+        editor_user_id: int
+    ):
         super().__init__(timeout=300)
         self.cog = cog
-        self.user_id = user_id
+        self.target_user = target_user
+        self.target_user_id = target_user.id
+        self.editor_user_id = editor_user_id
+        # self.target_user = 
 
     async def interaction_check(self, ita: discord.Interaction) -> bool:
-        if ita.user.id != self.user_id:
+
+        if ita.user.id != self.editor_user_id:
             await ita.response.send_message(
                 "This profile editor is not for you.",
                 ephemeral=True,
@@ -409,8 +418,8 @@ class WWMProfileView(discord.ui.View):
         return True
 
     async def refresh_profile(self, ita: discord.Interaction) -> None:
-        row = self.cog.get_profile(self.user_id)
-        embed = self.cog.build_profile_embed(ita.user, row)
+        row = self.cog.get_profile(self.target_user_id)
+        embed = self.cog.build_profile_embed(self.target_user, row)
         await ita.response.edit_message(
             embed=embed,
             view=self,
@@ -421,7 +430,7 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.user_id,
+                user_id=self.target_user_id,
                 field_name="uid",
                 title="Edit UID",
                 label="Where Winds Meet UID",
@@ -435,7 +444,7 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.user_id,
+                user_id=self.target_user_id,
                 field_name="name",
                 title="Edit In-Game Name",
                 label="In-game name",
@@ -449,7 +458,7 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.user_id,
+                user_id=self.target_user_id,
                 field_name="mythic_rank",
                 title="Edit Mythic Rank",
                 label="Mythic rank",
@@ -463,7 +472,7 @@ class WWMProfileView(discord.ui.View):
         await ita.response.send_modal(
             WWMProfileFieldModal(
                 cog=self.cog,
-                user_id=self.user_id,
+                user_id=self.target_user_id,
                 field_name="dps",
                 title="Edit DPS",
                 label="DPS",
@@ -490,6 +499,9 @@ class WWMBuildView(discord.ui.View):
         self.user_id = user_id
         self.add_item(WWMBuildSelect(cog, user_id))
 
+# TODO(refactor): Take in a discord.Member/User object instead of user_id to
+# check if the edit is being made by an admin or the profile owner, and to update 
+# the embed thumbnail with the user's avatar after editing
 class WWMProfileFieldModal(discord.ui.Modal):
     def __init__(
         self,
