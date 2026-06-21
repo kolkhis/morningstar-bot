@@ -95,20 +95,19 @@ class WWM(commands.GroupCog, name="wwm"):
 
     def set_uid(self, user_id: int, uid: str):
         """create or update a user's wwm UID"""
-        await self.set_profile_field(user_id, "uid", uid)
-        # cursor = self.bot.db.cursor()
-        # cursor.execute(
-        #     """
-        #     INSERT INTO wwm_profiles (user_id, uid, updated_at)
-        #     VALUES (?, ?, ?)
-        #     ON CONFLICT(user_id) DO UPDATE
-        #         SET
-        #         uid = excluded.uid,
-        #         updated_at = excluded.updated_at
-        #     """,
-        #     (user_id, uid, discord.utils.utcnow().isoformat()),
-        # )
-        # self.bot.db.commit()
+        cursor = self.bot.db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO wwm_profiles (user_id, uid, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE
+                SET
+                uid = excluded.uid,
+                updated_at = excluded.updated_at
+            """,
+            (user_id, uid, discord.utils.utcnow().isoformat()),
+        )
+        self.bot.db.commit()
 
     def set_name(self, user_id: int, name: str):
         """create or update the user's WWM name"""
@@ -248,7 +247,7 @@ class WWM(commands.GroupCog, name="wwm"):
         # self.set_uid(ita.user.id, uid)
         await self.set_profile_field(ita.user.id, "uid", uid)
         await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
-        
+
 
     @app_commands.command(name="set-name", description="Set your Where Winds Meet in-game name")
     @app_commands.describe(name="Your Where Winds Meet in-game name")
