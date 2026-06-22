@@ -75,7 +75,7 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         return cursor.fetchone()
 
-    async def set_profile_field(self, user_id: int, field: str, value: str):
+    def set_profile_field(self, user_id: int, field: str, value: str):
         """helper function to set a specific field in the user's profile"""
         if field not in FIELD_NAMES.values():
             raise ValueError(f"Invalid field name: {field}. Allowed fields are: {', '.join(FIELD_NAMES.values())}")
@@ -267,7 +267,7 @@ class WWM(commands.GroupCog, name="wwm"):
             await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
             return
         # self.set_uid(ita.user.id, uid)
-        await self.set_profile_field(ita.user.id, "uid", uid)
+        self.set_profile_field(ita.user.id, "uid", uid)
         await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
 
 
@@ -279,7 +279,7 @@ class WWM(commands.GroupCog, name="wwm"):
             await ita.response.send_message("Please provide a valid name.", ephemeral=True)
             return
         # self.set_name(ita.user.id, name)
-        await self.set_profile_field(ita.user.id, "name", name)
+        self.set_profile_field(ita.user.id, "name", name)
         await ita.response.send_message(f"Your in-game name has been saved as: {name}.")
 
     @app_commands.command(name="set-dps", description="Set your Where Winds Meet in-game dps")
@@ -293,7 +293,7 @@ class WWM(commands.GroupCog, name="wwm"):
             await ita.response.send_message("Please provide valid DPS. (e.g., 41.1k)", ephemeral=True)
             return
         # self.set_dps(ita.user.id, dps)
-        await self.set_profile_field(ita.user.id, "dps", dps)
+        self.set_profile_field(ita.user.id, "dps", dps)
         await ita.response.send_message(f"Your in-game DPS has been saved as: {dps}.")
 
     @app_commands.command(name="set-mythic-rank", description="Set your Where Winds Meet in-game Mythic PVP rank")
@@ -307,7 +307,7 @@ class WWM(commands.GroupCog, name="wwm"):
         #     await ita.response.send_message("Please provide valid mythic points rank. (e.g., 1000)", ephemeral=True)
         #     return
         # self.set_mythic_rank(ita.user.id, mythic_rank)
-        await self.set_profile_field(ita.user.id, "mythic_rank", mythic_rank)
+        self.set_profile_field(ita.user.id, "mythic_rank", mythic_rank)
         await ita.response.send_message(f"Your in-game DPS has been saved as: {mythic_rank}.")
 
     @app_commands.command(name="set-build", description="Set your Where Winds Meet build")
@@ -397,7 +397,7 @@ class WWMBuildSelect(discord.ui.Select):
 
         selected_build = self.values[0]
 
-        await self.cog.set_profile_field(
+        self.cog.set_profile_field(
             user_id=self.target_user_id,
             field="build",
             value=selected_build,
@@ -608,7 +608,7 @@ class WWMProfileFieldModal(discord.ui.Modal):
                 await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
                 return
 
-        await self.cog.set_profile_field(user_id=self.target_user_id, field=self.field_name,value=value)
+        self.cog.set_profile_field(user_id=self.target_user_id, field=self.field_name,value=value)
 
         row = self.cog.get_profile(self.target_user_id)
         embed = self.cog.build_profile_embed(self.target_user, row)
