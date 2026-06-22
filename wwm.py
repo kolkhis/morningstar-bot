@@ -6,7 +6,7 @@ import re
 from discord import app_commands
 from discord.ext import commands
 
-user_schema="""
+profile_schema="""
 CREATE TABLE IF NOT EXISTS wwm_profiles (
     user_id INTEGER PRIMARY KEY,
     updated_at TEXT NOT NULL,
@@ -48,7 +48,7 @@ class WWM(commands.GroupCog, name="wwm"):
     def init_db(self):
         """create table for WWM user info"""
         cursor = self.bot.db.cursor()
-        cursor.execute(user_schema)
+        cursor.execute(profile_schema)
         self.bot.db.commit()
         # make sure all columns exist in case the schema is updated with new fields
         for col in FIELD_NAMES.values():
