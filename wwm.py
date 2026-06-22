@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS wwm_profiles (
 );
 """
 
+# The database fields and their corresponding display names in the embed
 FIELD_NAMES: dict[str, str] = {
     "UID": "uid",
     "Name": "name",
