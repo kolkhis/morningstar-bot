@@ -212,15 +212,9 @@ class WWM(commands.GroupCog, name="wwm"):
         )
         self.bot.db.commit()
 
-    # TODO(feat): Add optional parameter to view another user's profile, and (this
-    # only for admins) to modify or delete another user's profile
     @app_commands.command(name="profile", description="View or edit your Where Winds Meet profile")
     @app_commands.describe(member="The member whose profile you want to view or edit. Leave blank to view/edit your own profile.")
     async def profile_cmd(self, ita: discord.Interaction, member: discord.Member | None = None):
-        # TODO: If member is provided, check if ita.user has permission to view/edit other profiles
-        #   - View should be allowed globally
-        #   - Edit should only be allowed for admins (use a different view that
-        #     allows selecting which field to edit?)
         if member is not None and member.id != ita.user.id:
             if not ita.user.guild_permissions.administrator:
                 await ita.response.send_message(
@@ -244,15 +238,6 @@ class WWM(commands.GroupCog, name="wwm"):
             ephemeral=True,
         )
     
-        # row = self.get_profile(ita.user.id)
-        # embed = self.build_profile_embed(ita.user, row)
-        # await ita.response.send_message(
-        #     embed=embed,
-        #     view=WWMProfileView(self, ita.user.id),
-        #     ephemeral=True,
-        # )
-
-
     @app_commands.command(name="set-uid", description="Set your Where Winds Meet in-game UID")
     @app_commands.describe(uid="Your Where Winds Meet in-game UID (include only the 10-digit number)")
     async def uid_cmd(self, ita: discord.Interaction, uid: str):
@@ -266,7 +251,6 @@ class WWM(commands.GroupCog, name="wwm"):
         if len(uid) != 10:
             await ita.response.send_message("Your UID should be 10 digits long.", ephemeral=True)
             return
-        # self.set_uid(ita.user.id, uid)
         self.set_profile_field(ita.user.id, "uid", uid)
         await ita.response.send_message(f"Your in-game UID has been saved as: {uid}.")
 
@@ -278,7 +262,6 @@ class WWM(commands.GroupCog, name="wwm"):
         if not name:
             await ita.response.send_message("Please provide a valid name.", ephemeral=True)
             return
-        # self.set_name(ita.user.id, name)
         self.set_profile_field(ita.user.id, "name", name)
         await ita.response.send_message(f"Your in-game name has been saved as: {name}.")
 
@@ -292,7 +275,6 @@ class WWM(commands.GroupCog, name="wwm"):
         if not re.match(r"^\d+(\.?\d+)?[kK]?$", dps):
             await ita.response.send_message("Please provide valid DPS. (e.g., 41.1k)", ephemeral=True)
             return
-        # self.set_dps(ita.user.id, dps)
         self.set_profile_field(ita.user.id, "dps", dps)
         await ita.response.send_message(f"Your in-game DPS has been saved as: {dps}.")
 
@@ -306,7 +288,6 @@ class WWM(commands.GroupCog, name="wwm"):
         # if not re.match(r"^\d{3,5}", mythic_rank):
         #     await ita.response.send_message("Please provide valid mythic points rank. (e.g., 1000)", ephemeral=True)
         #     return
-        # self.set_mythic_rank(ita.user.id, mythic_rank)
         self.set_profile_field(ita.user.id, "mythic_rank", mythic_rank)
         await ita.response.send_message(f"Your in-game DPS has been saved as: {mythic_rank}.")
 
