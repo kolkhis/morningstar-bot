@@ -284,35 +284,9 @@ async def weekly_guild_events_cmd(ita: discord.Interaction):
 # Command to display a Discord timestamp for times of the guild events
 @bot.tree.command(name="daily-guild-events", description="Show the schedule for guild events")
 async def daily_guild_events_cmd(ita: discord.Interaction):
-    embed = discord.Embed(
-        title="Daily Guild Event Schedule",
-        description="Below is today's **daily** schedule for our regular guild events.\nAll event times are localized.",
-        color=discord.Color.green(),
-    )
-    today = dt.date.today()
-    for event_name, schedule in GUILD_EVENTS.items():
-        lines: list[str] = []
-        for day, time_str in schedule.items():
-            event_time = dt.datetime.strptime(time_str, "%H:%M").time()
-            target_weekday = DAY_TO_WEEKDAY[day]
-            days_ahead = (target_weekday - today.weekday()) % 7
-            target_date = today + dt.timedelta(days=days_ahead)
-            event_dt = dt.datetime.combine(target_date, event_time)
-            timestamp = discord.utils.format_dt(event_dt, style="t")
-            relative_timestamp = discord.utils.format_dt(event_dt, style="R")
-            if target_weekday == today.weekday():
-                lines.append(f"- **{day}** at {timestamp} ({relative_timestamp})" + (" **(today)**" if target_weekday == today.weekday() else ""))
-
-        value = "\n".join(lines)
-        if value:
-            embed.add_field(
-                name=event_name,
-                value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
-                inline=False,
-            )
+    embed = build_daily_schedule_embed()
     await ita.response.send_message(embed=embed, ephemeral=True)
     return
-
 
 @bot.tree.command(name="do-not-use", description="DM util")
 async def dm_all_except_cmd(ita: discord.Interaction, excluded_member: discord.Member, message: str):
@@ -383,9 +357,7 @@ async def guild_event_notification_loop():
         event_time_str = schedule.get(current_day)
         if event_time_str is None:
             continue
-
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
-
         if now.hour != event_time.hour or now.minute != event_time.minute:
             continue
 
@@ -453,46 +425,19 @@ Please check the times carefully and make sure you can make the events you sign 
 """)
     return
 
-# @tasks.loop(time=dt.time(hour=0, minute=0, second=0, tzinfo=EASTERN_TZ))
-# async def daily_guild_schedule_post_loop():
-#     guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
-#     if guild_notification_channel is None:
-#         guild_notification_channel = await bot.fetch_channel(GUILD_NOTIFICATION_CHANNEL_ID)
+@tasks.loop(time=dt.time(hour=0, minute=0, second=0, tzinfo=EASTERN_TZ))
+async def daily_guild_schedule_post_loop():
+    guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
+    if guild_notification_channel is None:
+        guild_notification_channel = await bot.fetch_channel(GUILD_NOTIFICATION_CHANNEL_ID)
+    if not isinstance(guild_notification_channel, discord.TextChannel):
+        return
+    embed = build_daily_schedule_embed()
+    await guild_notification_channel.send(embed=embed)
 
-#     if not isinstance(guild_notification_channel, discord.TextChannel):
-#         return
-
-#     embed = discord.Embed(
-#         title="Daily Guild Event Schedule",
-#         description="Below is today's **daily** schedule for our regular guild events.\nAll event times are localized.",
-#         color=discord.Color.green(),
-#     )
-#     today = dt.date.today()
-#     for event_name, schedule in GUILD_EVENTS.items():
-#         lines: list[str] = []
-#         for day, time_str in schedule.items():
-#             event_time = dt.datetime.strptime(time_str, "%H:%M").time()
-#             target_weekday = DAY_TO_WEEKDAY[day]
-#             days_ahead = (target_weekday - today.weekday()) % 7
-#             target_date = today + dt.timedelta(days=days_ahead)
-#             event_dt = dt.datetime.combine(target_date, event_time)
-#             timestamp = discord.utils.format_dt(event_dt, style="t")
-#             relative_timestamp = discord.utils.format_dt(event_dt, style="R")
-#             if target_weekday == today.weekday():
-#                 lines.append(f"- **{day}** at {timestamp} ({relative_timestamp})" + (" **(today)**" if target_weekday == today.weekday() else ""))
-
-#         value = "\n".join(lines)
-#         if value:
-#             embed.add_field(
-#                 name=event_name,
-#                 value=f"{value}\n━━━━━━━━━━━━━━━━━━━━",
-#                 inline=False,
-#             )
-#     await guild_notification_channel.send(embed=embed)
-
-# @daily_guild_schedule_post_loop.before_loop
-# async def before_daily_guild_schedule_post_loop():
-#     await bot.wait_until_ready()
+@daily_guild_schedule_post_loop.before_loop
+async def before_daily_guild_schedule_post_loop():
+    await bot.wait_until_ready()
 
 @guild_event_notification_loop.before_loop
 async def before_event_notification_loop():
@@ -513,8 +458,8 @@ async def main() -> None:
             raise
         if not guild_event_notification_loop.is_running():
             guild_event_notification_loop.start()
-        # if not daily_guild_schedule_post_loop.is_running():
-        #     daily_guild_schedule_post_loop.start()
+        if not daily_guild_schedule_post_loop.is_running():
+            daily_guild_schedule_post_loop.start()
 
         await bot.start(BOT_TOKEN)
         print("Bot is done.")
