@@ -320,7 +320,7 @@ async def dm_all_except_cmd(ita: discord.Interaction, excluded_member: discord.M
         try:
             await member.send(formatted_msg)
             sent += 1
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.2)
         except discord.Forbidden:
             failed += 1 # DMs disabled or they blocked the bot
             failed_users.append(member.name)
