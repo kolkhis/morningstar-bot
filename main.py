@@ -76,7 +76,7 @@ def build_daily_schedule_embed() -> discord.Embed:
     today = dt.date.today()
     embed = discord.Embed(
         title="Daily Guild Event Schedule",
-        description=f"Below is today's **daily** schedule for {today.strftime('%A')}, {date_timestamp}.\nAll event times are localized.",
+        description=f"Below is today's **daily** schedule for **{today.strftime('%A')}**, {date_timestamp}.\nAll event times are localized.",
         color=discord.Color.green(),
     )
     for event_name, schedule in GUILD_EVENTS.items():
@@ -291,9 +291,8 @@ async def daily_guild_events_cmd(ita: discord.Interaction):
 
 @bot.tree.command(name="do-not-use", description="DM util")
 async def dm_all_except_cmd(ita: discord.Interaction, excluded_member: discord.Member, message: str):
-    ryu = 1395848132444553246
     kol = 103719303441825792
-    if not ita.user.guild_permissions.administrator and not (ita.user.id in [ryu, kol]):
+    if not ita.user.guild_permissions.administrator and not (ita.user.id == kol):
         await ita.response.send_message("You do not have permission to use this command.", ephemeral=True)
         return
 
