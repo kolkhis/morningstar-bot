@@ -137,7 +137,6 @@ async def level_cmd(ita: discord.Interaction):
     embed.add_field(name="Level", value=str(row["level"]), inline=True)
     embed.add_field(name="Messages", value=str(row["message_count"]), inline=True)
 
-    # # Include progress to next level if not max level
     level = row["level"]
     message_count = row["message_count"]
 
@@ -185,10 +184,6 @@ async def users_by_level(ita: discord.Interaction, level: int):
     for idx, row in enumerate(rows, start=1):
         lines.append(f"{idx:>2}. <@{row['user_id']}> - {row['message_count']} messages")
     await ita.response.send_message(f"# Users at level {level}:\n" + "\n".join(lines), ephemeral=True)
-    # user_mentions = [f"<@{user['user_id']}>" for user in lines]
-    # mentions_str = "\n".join(user_mentions)
-    # await ita.response.send_message(f"Users at level {level}:\n{mentions_str}", ephemeral=True)
-
 
 @bot.tree.command(name="count_users_over_level", description="Get count of all users of a specified level and above")
 @app_commands.describe(level="The level to filter users by")
