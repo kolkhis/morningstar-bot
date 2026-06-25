@@ -73,12 +73,12 @@ bot: Bot = Bot()
 
 def build_daily_schedule_embed() -> discord.Embed:
     date_timestamp = discord.utils.format_dt(dt.datetime.now(), style="D")
+    today = dt.date.today()
     embed = discord.Embed(
         title="Daily Guild Event Schedule",
-        description=f"Below is today's **daily** schedule for {date_timestamp}.\nAll event times are localized.",
+        description=f"Below is today's **daily** schedule for {today.strftime('%A')}, {date_timestamp}.\nAll event times are localized.",
         color=discord.Color.green(),
     )
-    today = dt.date.today()
     for event_name, schedule in GUILD_EVENTS.items():
         lines: list[str] = []
         for day, time_str in schedule.items():
