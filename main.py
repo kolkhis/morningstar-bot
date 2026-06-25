@@ -72,9 +72,10 @@ if BOT_TOKEN == 'empty':
 bot: Bot = Bot()
 
 def build_daily_schedule_embed() -> discord.Embed:
+    date_timestamp = discord.utils.format_dt(dt.datetime.now(), style="D")
     embed = discord.Embed(
         title="Daily Guild Event Schedule",
-        description="Below is today's **daily** schedule for our regular guild events.\nAll event times are localized.",
+        description=f"Below is today's **daily** schedule for {date_timestamp}.\nAll event times are localized.",
         color=discord.Color.green(),
     )
     today = dt.date.today()
@@ -357,6 +358,7 @@ async def guild_event_notification_loop():
         event_time_str = schedule.get(current_day)
         if event_time_str is None:
             continue
+
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
         if now.hour != event_time.hour or now.minute != event_time.minute:
             continue
