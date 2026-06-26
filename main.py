@@ -414,10 +414,22 @@ Log in and send a message in the guild chat for an invite!
 <@&{MORNINSTAR_ROLE_ID}> Reminder: Weekly **{event_name}** has started!
 Event signups are posted weekly at {current_day} at {timestamp} by the RaidBot.
 
-Check the messages from the Raid Bot in #guild-events-schedule for details on the events 
+Check the messages from the Raid Bot in <#1467567050611495058> for details on the events 
 happening this week and sign up for the ones you want to participate in.
 
 Please check the times carefully and make sure you can make the events you sign up for.
+""")
+
+        elif event_name == "Guild Tower (Skyward Bond)":
+            await guild_notification_channel.send(f"""
+<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
+Guild Tower (Skyward Bond) is weekly at {current_day} at {timestamp} ({relative_timestamp}).
+
+Two runs per week: 
+- Thursday runs are for learning and getting people through the lower floors.  
+- Friday runs are when we take the highest DPS in guild to try and clear the highest floors we can.  
+
+Signups for Guild Tower are posted in <#1467567050611495058> every Monday. 
 """)
     return
 
