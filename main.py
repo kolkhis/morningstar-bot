@@ -62,7 +62,6 @@ DAY_TO_WEEKDAY = {
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
-GUILD_ADMINS_CHANNEL_ID:int = 0
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 if BOT_TOKEN == 'empty':
@@ -476,4 +475,3 @@ async def main() -> None:
 
 if __name__ == '__main__':
     asyncio.run(main())
-
