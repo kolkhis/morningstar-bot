@@ -4,7 +4,7 @@ import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from bot import Bot, LEVEL_THRESHOLDS, EVENT_ROLE_ID, EVENT_REQUIRED_LEVEL
+from bot import Bot, LEVEL_THRESHOLDS
 import json
 
 import datetime as dt
