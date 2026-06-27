@@ -5,7 +5,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from bot import Bot, LEVEL_THRESHOLDS
-import json
 
 import datetime as dt
 from zoneinfo import ZoneInfo
