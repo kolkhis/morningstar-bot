@@ -331,6 +331,7 @@ class Bot(commands.Bot):
             self.create_user_stats(user_id)
             row = self.get_user_stats(user_id)
 
+        assert type(row) == sqlite3.Row
         old_level: int = row["level"]
         message_count: int = row["message_count"] + 1
         new_level: int = calculate_level(message_count)
@@ -345,7 +346,7 @@ class Bot(commands.Bot):
         Returns:
             tuple[Optional[int], Optional[int]]:
                 (next_level, next_threshold)
-
+ 
             If the user is already max level, returns (None, None).
         """
         if level >= max(LEVEL_THRESHOLDS):
