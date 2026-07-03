@@ -424,10 +424,10 @@ Please check the times carefully and make sure you can make the events you sign 
 Guild Tower (Skyward Bond) is weekly at {current_day} at {timestamp} ({relative_timestamp}).
 
 We do two runs per week: 
-- Thursday runs are for learning and getting people through the lower floors.  
+- Thursday runs are typically for learning and getting people through the lower floors.  
 - Friday runs are when we take the highest DPS in guild to try and clear the highest floors we can.  
 
-Signups for Guild Tower are posted in <#1467567050611495058> every Monday. 
+Signups for Guild Tower (and the rest of the weekly events) are posted in <#1467567050611495058> every Monday. 
 Anyone can sign up to participate. If you are at all interested in doing Guild Tower (Skyward Bond), please sign up!
 """)
     return
