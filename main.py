@@ -429,6 +429,7 @@ We do two runs per week:
 
 Signups for Guild Tower (and the rest of the weekly events) are posted in <#1467567050611495058> every Monday. 
 Anyone can sign up to participate. If you are at all interested in doing Guild Tower (Skyward Bond), please sign up!
+> You can use the `/daily-guild-events` and `/weekly-guild-events` commands to check the schedule.  
 """)
     return
 
