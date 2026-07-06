@@ -465,6 +465,7 @@ async def main() -> None:
             print ("Faction quiz extension loaded.")
             await bot.load_extension("wwm")
             print("WWM extension loaded.")
+            await bot.load_extension("guild_roles")
             print("All extensions loaded.")
         except Exception as e:
             sys.stderr.write(f"Error loading extensions: {e}\n")
