@@ -11,6 +11,7 @@ ROLE_BUTTONS: dict[str, int] = {
     "Guild Tower (Skyward Bond)": 1523825690020020234,
     "Guild War (GvG)": 1523825823566659648,
     "Guild Hero's Realm": 1523826004295159878,
+    "Guild Party": 1523827362922238122,
 }
 
 class GuildRoles(commands.GroupCog, name="guild"):
