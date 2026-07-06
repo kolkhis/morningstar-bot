@@ -1,8 +1,17 @@
 #!/bin/bash
+# shellcheck disable=SC2006
 
 if ! [[ -d ./venv ]]; then
+    printf >&2 'ERROR: No virtual environment found. Creating one...\n'
     python3 -m venv venv
     pip install -U discord.py
+    printf >&2 'Virtual environment created. Please make sure to set the necessary environment variables.\n'
+    cat << EOF
+Variables to set in `./venv/bin/activate` (add to end of the file):
+    export DISCORD_TOKEN="your_discord_token"
+    export GUILD_ID="your_guild_id"
+EOF
+    exit 1
 fi
 
 source ./venv/bin/activate
