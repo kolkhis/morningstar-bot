@@ -31,11 +31,11 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Friday": "20:00",
         "Saturday": "14:30",
         },
-    "Guild War": {
+    "Guild War (GvG)": {
         "Saturday": "14:30",
         "Sunday": "14:30"
         },
-    "Guild Hero Realm": {
+    "Guild Hero's Realm": {
         "Saturday": "15:10",
         "Sunday": "17:00",
         },
@@ -46,6 +46,73 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Event Signup": {
         "Monday": "15:00",
     },
+}
+
+EVENT_NOTIFICATION_MESSAGES: dict[str, str] = {
+    "Guild Party": """
+{role_mention} Reminder: **{event_name}** is starting! Get ready!
+Guild Party is today at {timestamp} ({relative_timestamp}), your local time.
+
+To participate:
+Go to the guild base (open guild menu and hit space) and press K to inject aura. It's free and extends party duration!
+""",
+
+    "Breaking Army": """
+{role_mention} Reminder: **{event_name}** is starting!
+Breaking Army is today at {timestamp} ({relative_timestamp}), your local time.
+
+To participate:
+Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!
+""",
+
+    "Showdown": """
+{role_mention} Reminder: **{event_name}** is starting!
+Showdown is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}), your local time.
+
+To participate:
+Go to the guild base, turn left and find the arena right outside.
+""",
+
+    "Guild War": """
+{role_mention} Reminder: **{event_name}** is starting!
+Guild War is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}).
+
+Get ready to defend our honor!
+""",
+
+    "Guild Hero Realm": """
+{role_mention} Reminder: **{event_name}** is starting!
+Guild Hero Realm is today, weekly on {current_day} at {timestamp} ({relative_timestamp}).
+
+To participate:
+Log in and send a message in the guild chat for an invite!
+""",
+
+    "Guild Tower (Skyward Bond)": """
+{role_mention} Reminder: **{event_name}** is starting!
+Guild Tower (Skyward Bond) is weekly on {current_day} at {timestamp} ({relative_timestamp}).
+
+We do two runs per week:
+- Thursday runs are when we take the highest DPS in guild to try and clear the highest floors we can.
+- Friday runs are typically for learning and getting people through the lower floors.
+
+Signups for Guild Tower and the rest of the weekly events are posted in <#1467567050611495058> every Monday.
+Anyone can sign up to participate. If you are at all interested in doing Guild Tower, please sign up!
+
+- If you'd like to be part of the main team, post your DPS in this thread: <#1514101741258543256>
+- It also helps to set up your WWM profile through Kolbot. Use `/wwm profile` to do it. It's really quick.
+
+> Use `/daily-guild-events` and `/weekly-guild-events` to check the schedule.
+""",
+
+    "Event Signup": """
+Reminder: Weekly **{event_name}** has started!
+Event signups are posted weekly on {current_day} at {timestamp} by the RaidBot.
+
+Check the messages from the Raid Bot in <#1467567050611495058> for details on the events happening this week and sign up for the ones you want to participate in.
+
+Please check the times carefully and make sure you can make the events you sign up for.
+""",
 }
 
 DAY_TO_WEEKDAY = {
@@ -61,6 +128,36 @@ DAY_TO_WEEKDAY = {
 
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
+
+from guild_roles import ROLE_BUTTONS
+def get_event_role_mention(event_name: str) -> str:
+    role_id = ROLE_BUTTONS.get(event_name)
+    if role_id is not None:
+        return f"<@&{role_id}>"
+    return f"<@&{MORNINSTAR_ROLE_ID}>"
+
+def build_event_notification_message(
+    event_name: str,
+    current_day: str,
+    timestamp: str,
+    relative_timestamp: str) -> str | None:
+    template = EVENT_NOTIFICATION_MESSAGES.get(event_name)
+
+    if template is None:
+        return None
+
+    role_mention = get_event_role_mention(event_name)
+
+    message = template.format(
+        role_mention=role_mention,
+        event_name=event_name,
+        current_day=current_day,
+        timestamp=timestamp,
+        relative_timestamp=relative_timestamp,
+    )
+
+    return message.strip()
+
 
 BOT_TOKEN: str = os.environ.get('BOT_TOKEN', 'empty')
 if BOT_TOKEN == 'empty':
@@ -392,14 +489,14 @@ To participate:
 Go to the guild base, turn left and find the arena right outside.
 """)
 
-        elif event_name == "Guild War":
+        elif event_name == "Guild War (GvG)":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
 Guild War is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}).
 Get ready to defend our honor!
 """)
 
-        elif event_name == "Guild Hero Realm":
+        elif event_name == "Guild Hero's Realm":
             await guild_notification_channel.send(f"""
 <@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
 Guild Hero Realm is today, weekly at {current_day} at {timestamp} ({relative_timestamp}).
