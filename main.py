@@ -155,7 +155,6 @@ def build_event_notification_message(
         timestamp=timestamp,
         relative_timestamp=relative_timestamp,
     )
-
     return message.strip()
 
 
@@ -434,106 +433,48 @@ async def dm_all_except_cmd(ita: discord.Interaction, excluded_member: discord.M
 @tasks.loop(minutes=1)
 async def guild_event_notification_loop():
     guild_notification_channel = bot.get_channel(GUILD_NOTIFICATION_CHANNEL_ID)
+
     if guild_notification_channel is None:
         guild_notification_channel = await bot.fetch_channel(GUILD_NOTIFICATION_CHANNEL_ID)
 
     if not isinstance(guild_notification_channel, discord.TextChannel):
         return
 
-    now = dt.datetime.now()
+    now = dt.datetime.now(EASTERN_TZ)
     current_day = now.strftime("%A")
 
     for event_name, schedule in GUILD_EVENTS.items():
         event_time_str = schedule.get(current_day)
+
         if event_time_str is None:
             continue
 
         event_time = dt.datetime.strptime(event_time_str, "%H:%M").time()
+
         if now.hour != event_time.hour or now.minute != event_time.minute:
             continue
 
-        timestamp = discord.utils.format_dt(
-            dt.datetime.combine(dt.date.today(), event_time),
-            style="t",
-        )
-        relative_timestamp = discord.utils.format_dt(
-            dt.datetime.combine(dt.date.today(), event_time),
-            style="R",
+        event_dt = dt.datetime.combine(
+            now.date(),
+            event_time,
+            tzinfo=EASTERN_TZ,
         )
 
+        timestamp = discord.utils.format_dt(event_dt, style="t")
+        relative_timestamp = discord.utils.format_dt(event_dt, style="R")
 
-        if event_name == "Guild Party":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting! Get ready!
-Guild Party is today at {timestamp} ({relative_timestamp}), your local time.
+        message = build_event_notification_message(
+            event_name=event_name,
+            current_day=current_day,
+            timestamp=timestamp,
+            relative_timestamp=relative_timestamp,
+        )
 
-To participate:
-Go to the guild base (open guild menu and hit space) and press K to inject aura (it's free and extends party duration!).
-""")
+        if message is None:
+            continue
 
-        elif event_name == "Breaking Army":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Breaking Army is today at {timestamp} ({relative_timestamp}), your local time.
-
-To participate:
-Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!
-""")
-
-        elif event_name == "Showdown":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Showdown is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}), your local time.
-
-To participate:
-Go to the guild base, turn left and find the arena right outside.
-""")
-
-        elif event_name == "Guild War (GvG)":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Guild War is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}).
-Get ready to defend our honor!
-""")
-
-        elif event_name == "Guild Hero's Realm":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Guild Hero Realm is today, weekly at {current_day} at {timestamp} ({relative_timestamp}).
-
-To participate:
-Log in and send a message in the guild chat for an invite!
-""")
-        elif event_name == "Event Signup":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: Weekly **{event_name}** has started!
-Event signups are posted weekly at {current_day} at {timestamp} by the RaidBot.
-
-Check the messages from the Raid Bot in <#1467567050611495058> for details on the events 
-happening this week and sign up for the ones you want to participate in.
-
-Please check the times carefully and make sure you can make the events you sign up for.
-""")
-
-        elif event_name == "Guild Tower (Skyward Bond)":
-            await guild_notification_channel.send(f"""
-<@&{MORNINSTAR_ROLE_ID}> Reminder: **{event_name}** is starting!
-Guild Tower (Skyward Bond) is weekly at {current_day} at {timestamp} ({relative_timestamp}).
-
-We do two runs per week: 
-- Thursday runs are when we take the highest DPS in guild to try and clear the highest floors we can.  
-- Friday runs are typically for learning and getting people through the lower floors.  
-
-Signups for Guild Tower (and the rest of the weekly events) are posted in <#1467567050611495058> every Monday. 
-Anyone can sign up to participate. If you are at all interested in doing Guild Tower (Skyward Bond), please sign up!
-- Note that if you'd like to be part of the main team, post your DPS in this
-  thread: <#1514101741258543256>
-- It also helps to set up your WWM profile through Kolbot. Use `/wwm profile`
-  to do it, it's really quick.  
-
-> Use the `/daily-guild-events` and `/weekly-guild-events` commands to check the schedule.  
-""")
-    return
+        await guild_notification_channel.send(message)
+        return
 
 @tasks.loop(time=dt.time(hour=0, minute=0, second=0, tzinfo=EASTERN_TZ))
 async def daily_guild_schedule_post_loop():
