@@ -51,7 +51,8 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
 EVENT_NOTIFICATION_MESSAGES: dict[str, str] = {
     "Guild Party": """
 {role_mention} Reminder: **{event_name}** is starting! Get ready!
-Guild Party is today at {timestamp} ({relative_timestamp}), your local time.
+Guild Party is today at {timestamp} ({relative_timestamp}), your local time. 
+{event_name} ends about 10 minutes after it starts.
 
 To participate:
 Go to the guild base (open guild menu and hit space) and press K to inject aura. It's free and extends party duration!
@@ -60,14 +61,16 @@ Go to the guild base (open guild menu and hit space) and press K to inject aura.
     "Breaking Army": """
 {role_mention} Reminder: **{event_name}** is starting!
 Breaking Army is today at {timestamp} ({relative_timestamp}), your local time.
+{event_name} ends 2 hours after it starts.
 
 To participate:
-Go to the guild menu, select "Events", find Breaking Army and select it to teleport there!
+Go to the guild menu, select "Events", find Breaking Army and select it to teleport there.
 """,
 
     "Showdown": """
 {role_mention} Reminder: **{event_name}** is starting!
 Showdown is today, weekly on {current_day}, at {timestamp} ({relative_timestamp}), your local time.
+{event_name} ends 2 hours after it starts.
 
 To participate:
 Go to the guild base, turn left and find the arena right outside.
@@ -84,8 +87,9 @@ Get ready to defend our honor!
 {role_mention} Reminder: **{event_name}** is starting!
 Guild Hero Realm is today, weekly on {current_day} at {timestamp} ({relative_timestamp}).
 
-To participate:
-Log in and send a message in the guild chat for an invite!
+Please check the messages from the Raid Helper in <#1467567050611495058> for
+details on the events happening this week and sign up for the ones you want to 
+participate in.
 """,
 
     "Guild Tower (Skyward Bond)": """
@@ -102,8 +106,8 @@ Anyone can sign up to participate. If you are at all interested in doing Guild T
 - If you'd like to be part of the main team, post your DPS in this thread: <#1514101741258543256>
 - It also helps to set up your WWM profile through Kolbot. Use `/wwm profile` to do it. It's really quick.
 
-> Use `/daily-guild-events` and `/weekly-guild-events` to check the schedule.
 """,
+# > Use `/daily-guild-events` and `/weekly-guild-events` to check the schedule.
 
     "Event Signup": """
 Reminder: Weekly **{event_name}** has started!
@@ -112,6 +116,8 @@ Event signups are posted weekly on {current_day} at {timestamp} by the RaidBot.
 Check the messages from the Raid Bot in <#1467567050611495058> for details on the events happening this week and sign up for the ones you want to participate in.
 
 Please check the times carefully and make sure you can make the events you sign up for.
+
+> Use `/daily-guild-events` and `/weekly-guild-events` to check the schedule.
 """,
 }
 
