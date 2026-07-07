@@ -107,7 +107,6 @@ Anyone can sign up to participate. If you are at all interested in doing Guild T
 - It also helps to set up your WWM profile through Kolbot. Use `/wwm profile` to do it. It's really quick.
 
 """,
-# > Use `/daily-guild-events` and `/weekly-guild-events` to check the schedule.
 
     "Event Signup": """
 Reminder: Weekly **{event_name}** has started!
