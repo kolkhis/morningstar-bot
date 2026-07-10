@@ -51,7 +51,71 @@ class GuildRoleView(discord.ui.View):
 
         for label, role_id in ROLE_BUTTONS.items():
             self.add_item(GuildRoleButton(label=label, role_id=role_id))
+        self.add_item(AssignAllButton())
 
+class AssignAllButton(discord.ui.Button):
+    def __init__(self):
+        super().__init__(
+            label="Assign All Roles",
+            style=discord.ButtonStyle.success,
+        )
+
+    async def callback(self, ita: discord.Interaction):
+        if ita.guild is None:
+            await ita.response.send_message(
+                "This can only be used in the server.",
+                ephemeral=True,
+            )
+            return
+
+        member = ita.guild.get_member(ita.user.id)
+
+        if member is None:
+            try:
+                member = await ita.guild.fetch_member(ita.user.id)
+            except discord.DiscordException:
+                await ita.response.send_message(
+                    "Could not find your server membership. Try again.",
+                    ephemeral=True,
+                )
+                return
+
+        roles_to_add = []
+        for role_id in ROLE_BUTTONS.values():
+            role = ita.guild.get_role(role_id)
+            if role and role not in member.roles:
+                roles_to_add.append(role)
+
+        if not roles_to_add:
+            await ita.response.send_message(
+                "You already have all the guild roles.",
+                ephemeral=True,
+            )
+            return
+
+        try:
+            await member.add_roles(
+                *roles_to_add,
+                reason="Guild role selector",
+            )
+            added_roles_mentions = ", ".join(role.mention for role in roles_to_add)
+            await ita.response.send_message(
+                f"Added roles: {added_roles_mentions}",
+                ephemeral=True,
+            )
+        except discord.Forbidden:
+            await ita.response.send_message(
+                (
+                    "I do not have permission to manage some of those roles.\n\n"
+                    "Make sure my bot role is above the roles I am trying to assign."
+                ),
+                ephemeral=True,
+            )
+        except discord.HTTPException:
+            await ita.response.send_message(
+                "Discord returned an error while updating your roles. Please try again.",
+                ephemeral=True,
+            )
 
 class GuildRoleButton(discord.ui.Button):
     def __init__(self, label: str, role_id: int):
