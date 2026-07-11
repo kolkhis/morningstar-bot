@@ -196,7 +196,23 @@ Formatted as follows
 }
 ```
 
+#### Abuse prevention
+
+- one claim per Discord user per calendar month
+- require a specific eligible role
+- log every claim to an admin channel
+- store Tremendous order ID and reward ID
+- use sandbox first
+- no public reward links (email only)
+- prod command disabled by default until configured
+
 ---
+
+- monthly total budget cap
+- per-user amount cap
+- admin enable/disable switch
+- manual approval mode for first version
+- account age / server join age check??
 
 
 
