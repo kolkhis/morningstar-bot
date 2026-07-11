@@ -16,6 +16,8 @@ from tremendous_client import TremendousClient
 # - /coffee profile
 # - /coffee claim
 
+# TODO(fix): Add role checking to ensure only eligible users can claim
+
 COFFEE_AMOUNT_USD = float(os.environ.get("COFFEE_AMOUNT_USD", "5"))
 TREMENDOUS_PRODUCT_IDS = os.environ.get("TREMENDOUS_PRODUCT_IDS", "").split(",")
 
