@@ -101,6 +101,101 @@ bot/
 - [x] Add a command to output all members of a given level
 - [ ] Add ticket system for people to request coaching
 
+### Tremendous API Integration (Coffee Fund)
+
+Starting commands:
+
+- `/coffee setup`
+    - Opens a modal that stores name and email
+- `/coffee claim email name`
+    - check if user has profile
+    - check that user hasn't claimed this month
+    - insert pending claim into db table (`coffee_claims`)
+    - call tremendous API
+    - update claim with order/reward IDs and status
+    - reply 
+- `/coffee status`
+
+Eventual Commands:
+
+- `/coffee claim`
+- `/coffee status`
+- `/coffee setup-email`
+- `/coffee admin-balance`
+- `/coffee admin-reset-user`
+- `/coffee admin-disable`
+
+#### Environment Vars
+
+```bash
+export TREMENDOUS_API_KEY='...'
+export TREMENDOUS_BASE_URL='https://testflight.tremendous.com/api/v2'
+export TREMENDOUS_PRODUCT_ID='...'
+export COFFEE_AMOUNT_USD='5'
+
+# for prod:
+export TREMENDOUS_BASE_URL='https://api.tremendous.com/api/v2'
+```
+
+#### DB Schema
+
+add user payout profiles
+```SQL
+CREATE TABLE IF NOT EXISTS coffee_profiles (
+    user_id INTEGER PRIMARY KEY,
+    recipient_name TEXT NOT NULL,
+    recipient_email TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+```
+
+add a claim ledger
+```SQL
+CREATE TABLE IF NOT EXISTS coffee_claims (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    claim_month TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    currency_code TEXT NOT NULL,
+    tremendous_order_id TEXT,
+    tremendous_reward_id TEXT,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, claim_month)
+);
+```
+
+- `UNIQUE(user_id, claim_month)` will prevent someone from claiming twice in
+  the same month. Format like `2026-07`
+
+
+#### Tremendous order payload
+Formatted as follows
+```json
+{
+  "payment": {
+    "funding_source_id": "BALANCE"
+  },
+  "reward": {
+    "value": {
+      "denomination": 50,
+      "currency_code": "USD"
+    },
+    "delivery": {
+      "method": "EMAIL"
+    },
+    "recipient": {
+      "name": "Jane Doe",
+      "email": "person@example.com"
+    },
+    "products": [
+      "OKMHM2X2OHYV"
+    ]
+  }
+}
+```
+
 ---
 
 
