@@ -46,9 +46,20 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Event Signup": {
         "Monday": "15:00",
     },
+
+    # set reminder for Zaiji to make the teams for Guild Tower and Guild Hero's
+    # Realm 2 hrs prior
+    "Remind Zaiji": {
+        "Saturday": "13:00",
+        "Sunday": "15:00",
+    },
 }
 
 EVENT_NOTIFICATION_MESSAGES: dict[str, str] = {
+    "Remind Zaiji": """
+<@207933725336535041> Reminder ({event_name}): Please set up the teams for the event that's starting in 2 hrs!
+    """,
+
     "Guild Party": """
 {role_mention} Reminder: **{event_name}** is starting! Get ready!
 Guild Party starts today at {timestamp} ({relative_timestamp}), your local time. 
