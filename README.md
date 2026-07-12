@@ -137,6 +137,13 @@ export COFFEE_AMOUNT_USD='5'
 export TREMENDOUS_BASE_URL='https://api.tremendous.com/api/v2'
 ```
 
+Tremendous uses bearer auth.
+e.g.:
+```bash
+curl -fsSL 'https://testflight.tremendous.com/api/v2/ping' \
+    -H "Authorization: Bearer $TREMENDOUS_API_KEY"
+```
+
 #### DB Schema
 
 add user payout profiles
@@ -214,6 +221,54 @@ Formatted as follows
 - manual approval mode for first version
 - account age / server join age check??
 
+
+Environment var for eligible role ID:
+```bash
+export COFFEE_ELIGIBLE_ROLE_ID='...'
+```
+Then load it
+```python
+COFFEE_ELIGIBLE_ROLE_ID = int(os.getenv("COFFEE_ELIGIBLE_ROLE_ID", "0"))
+if not COFFEE_ELIGIBLE_ROLE_ID:
+    raise ValueError("COFFEE_ELIGIBLE_ROLE_ID environment variable is not set.")
+```
+
+#### Sending a Reward
+
+The API can be sent a HTTP request to send a reward to a specific user (with
+their name/email):
+```bash
+curl --url 'https://testflight.tremendous.com/api/v2/orders' \
+     --header 'Authorization: Bearer YOUR-API-KEY' \
+     --header 'Content-Type: application/json' \
+     --data '
+{
+  "payment": {
+    "funding_source_id": "BALANCE"
+  },
+  "reward": {
+    "value": {
+      "denomination": 50,
+      "currency_code": "USD"
+    },
+    "delivery": {
+      "method": "EMAIL"
+    },
+    "recipient": {
+      "name": "Jane Doe",
+      "email": "YOUR-EMAIL-ADDRESS@example.com"
+    },
+    "products": [
+      "OKMHM2X2OHYV",
+      "KV934TZ93NQM",
+      "ET0ZVETV5ILN",
+      "Q24BD9EZ332JT",
+      "TBAJH7YLFVS5"
+    ]
+  }
+}
+'
+```
 
 
 
