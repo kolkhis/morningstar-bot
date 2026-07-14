@@ -533,11 +533,11 @@ async def main() -> None:
         print("Bot starting...")
         print("Loading extensions...")
         try:
-            await bot.load_extension("faction_quiz")
+            await bot.load_extension("ext.faction_quiz")
             print ("Faction quiz extension loaded.")
-            await bot.load_extension("wwm")
+            await bot.load_extension("ext.wwm")
             print("WWM extension loaded.")
-            await bot.load_extension("guild_roles")
+            await bot.load_extension("ext.guild_roles")
             print("All extensions loaded.")
         except Exception as e:
             sys.stderr.write(f"Error loading extensions: {e}\n")
