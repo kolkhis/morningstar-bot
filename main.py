@@ -163,7 +163,7 @@ DAY_TO_WEEKDAY = {
 MORNINSTAR_ROLE_ID:int = 1467564680401785090
 GUILD_NOTIFICATION_CHANNEL_ID:int = 1467566735535378432
 
-from guild_roles import ROLE_BUTTONS
+from ext.guild_roles import ROLE_BUTTONS
 def get_event_role_mention(event_name: str) -> str:
     role_id = ROLE_BUTTONS.get(event_name)
     if role_id is not None:
