@@ -6,6 +6,13 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from bot import Bot, LEVEL_THRESHOLDS
 
+EXTENSIONS = [
+    "ext.faction_quiz",
+    "ext.wwm",
+    "ext.guild_roles",
+]
+
+
 import datetime as dt
 from zoneinfo import ZoneInfo
 EASTERN_TZ = ZoneInfo("America/New_York")  # Eastern Time Zone
@@ -532,16 +539,13 @@ async def main() -> None:
     async with bot:
         print("Bot starting...")
         print("Loading extensions...")
-        try:
-            await bot.load_extension("ext.faction_quiz")
-            print ("Faction quiz extension loaded.")
-            await bot.load_extension("ext.wwm")
-            print("WWM extension loaded.")
-            await bot.load_extension("ext.guild_roles")
-            print("All extensions loaded.")
-        except Exception as e:
-            sys.stderr.write(f"Error loading extensions: {e}\n")
-            raise
+        for ext in EXTENSIONS:
+            try:
+                await bot.load_extension(ext)
+                print(f"{ext} extension loaded.")
+            except Exception as e:
+                sys.stderr.write(f"Error loading extension {ext}: {e}\n")
+                raise
         if not guild_event_notification_loop.is_running():
             guild_event_notification_loop.start()
         if not daily_guild_schedule_post_loop.is_running():
