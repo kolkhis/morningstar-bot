@@ -1,23 +1,57 @@
 #!/bin/bash
 
-if [[ $EUID -ne 0 ]]; then
-    printf >&2 "ERROR: Run as root.\n"
-    exit 1
-fi
+# declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/discord-bot.service"
+declare -r SYSTEMD_SERVICE_FILE="./test.service"
 
-if ! [[ -f /etc/systemd/system/discordbot.service ]]; then
-    cat << EOF | tee /etc/systemd/system/discordbot.service
+fatal() {
+    printf >&2 '[ \033[31mFATAL ERROR\033[0m ]: %s\n' "$*";
+    exit 1
+}
+
+write-service-file(){
+    local python_path
+    python_path="$(command -v python3)" || {
+        fatal "Failed to find Python3 in PATH."
+    }
+    cat << EOF | sudo tee "$SYSTEMD_SERVICE_FILE" > /dev/null || fatal "Failed to write service file."
 [Unit]
-Description=Discord Bot Service
+Description=Morningstar Discord Bot Service
 After=network.target
 
 [Service]
-User=$(whoami)
-WorkingDirectory=$(pwd)
-ExecStart=$(command -v python3) $(pwd)/main.py
+User=$USER
+WorkingDirectory=$PWD
+ExecStart=$python_path $PWD/main.py
 Restart=always
 RestartSec=5
 EOF
-    systemctl enable discordbot.service
-    systemctl start discordbot.service
+    return 0
+}
+
+if ! [[ -f ./main.py ]]; then
+    printf >&2 "ERROR: main.py not found in the current directory.\n\n"
+    printf >&2 'Are you in the correct directory? Run from root of project directory with "./scritps/systemd-integration"\n'
+    exit 1
 fi
+
+if ! [[ -f "$SYSTEMD_SERVICE_FILE" ]]; then
+    write-service-file
+else
+    printf "\033[33mWARNING: Systemd file already exists. This will overwrite the current service file.\033[0m\n"
+    read -r -p "Would you like to overwrite the current service file? [y/N]: " overwrite
+    if [[ $overwrite == [yY] ]]; then
+        printf "Overwriting current service file...\n"
+        write-service-file
+    else
+        printf "Not overwriting current service file.\n"
+    fi
+fi
+
+printf "Starting and enabling the service...\n"
+
+if ! sudo systemctl enable --now discordbot.service; then  
+    fatal "Failed to start and enable the service. Please check the service file and try again."
+fi
+
+printf "\033[32mService started and enabled successfully.\033[0m\n"
+
