@@ -1,9 +1,9 @@
 import os
 import aiohttp
 
-# TODO: Finish this.
-# 
 # Uses email delivery to send a Tremendous reward to a recipient. The reward is created using the Tremendous API.
+
+REQUEST_TIMEOUT_SECONDS = 15
 
 
 class TremendousClient:
@@ -49,13 +49,18 @@ class TremendousClient:
             "Content-Type": "application/json",
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as resp:
-                data = await resp.json(content_type=None)
+        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
-                if resp.status >= 400:
-                    raise RuntimeError(
-                        f"Tremendous API error {resp.status}: {data}"
-                    )
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, json=payload, headers=headers) as resp:
+                    data = await resp.json(content_type=None)
 
-                return data
+                    if resp.status >= 400:
+                        raise RuntimeError(
+                            f"Tremendous API error {resp.status}: {data}"
+                        )
+
+                    return data
+        except aiohttp.ClientError as e:
+            raise RuntimeError(f"Failed to reach Tremendous API: {e}") from e
