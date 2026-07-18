@@ -10,6 +10,7 @@ EXTENSIONS = [
     "ext.faction_quiz",
     "ext.wwm",
     "ext.guild_roles",
+    "ext.coffee_fund",
 ]
 
 
