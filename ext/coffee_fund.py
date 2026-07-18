@@ -13,6 +13,10 @@ from ext.tremendous_client import TremendousClient
 # API (see ./tremendous_client.py). Claims reset on the 1st of every month (UTC).
 
 COFFEE_AMOUNT_USD: float = float(os.environ.get("COFFEE_AMOUNT_USD", "5"))
+
+# the preset product IDs to use for Tremendous rewards. These should be comma-separated in the
+# env var (e.g., "prod_123,prod_456"). 
+# If empty, the Tremendous API will reject the order.
 TREMENDOUS_PRODUCT_IDS: list[str] = [
     p.strip() for p in os.environ.get("TREMENDOUS_PRODUCT_IDS", "").split(",") if p.strip()
 ]
