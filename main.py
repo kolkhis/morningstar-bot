@@ -21,6 +21,7 @@ EASTERN_TZ = ZoneInfo("America/New_York")  # Eastern Time Zone
 import locale
 locale.setlocale(locale.LC_TIME, 'C') # use English month names
 
+# All times are in Eastern Time (America/New_York), localized to host server
 GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Guild Party": {
         "Monday": "19:00",
