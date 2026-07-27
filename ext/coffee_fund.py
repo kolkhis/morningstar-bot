@@ -21,8 +21,8 @@ TREMENDOUS_PRODUCT_IDS: list[str] = [
     p.strip() for p in os.environ.get("TREMENDOUS_PRODUCT_IDS", "").split(",") if p.strip()
 ]
 
-# Role required to claim the coffee fund. Defaults to the general Morningstar
-# guild member role; override with COFFEE_ELIGIBLE_ROLE_ID to restrict further.
+# Role required to claim the coffee fund. Defaults to the Morningstar guild member role.
+# Set the environment variable COFFEE_ELIGIBLE_ROLE_ID to restrict to different role.
 COFFEE_ELIGIBLE_ROLE_ID: int = int(os.environ.get("COFFEE_ELIGIBLE_ROLE_ID", "1467564680401785090"))
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -284,7 +284,7 @@ class CoffeeFund(commands.GroupCog, name="coffee"):
         amount_cents = round(COFFEE_AMOUNT_USD * 100)
         claim_id = self.try_reserve_claim(ita.user.id, claim_month, amount_cents, "USD")
         if claim_id is None:
-            # Lost a race against a concurrent claim; the other request owns this month's slot
+            # Lost a race against a concurrent claim, the other request owns this month's slot
             await ita.followup.send(
                 "You've already claimed (or are claiming) this month's reward.",
                 ephemeral=True,
