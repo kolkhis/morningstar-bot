@@ -313,7 +313,8 @@ class CoffeeFund(commands.GroupCog, name="coffee"):
         self.mark_claim_success(claim_id, order.get("id"), reward.get("id"))
 
         await ita.followup.send(
-            f"Sent **${COFFEE_AMOUNT_USD:.2f}** to **{profile['recipient_email']}**.",
+            f"Sent **${COFFEE_AMOUNT_USD:.2f}** to **{profile['recipient_email']}**. "
+            "Be sure to check your spam/promotions folder if you don't see it.",
             ephemeral=True,
         )
 
