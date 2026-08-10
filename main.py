@@ -24,9 +24,9 @@ locale.setlocale(locale.LC_TIME, 'C') # use English month names
 # All times are in Eastern Time (America/New_York), localized to host server
 GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Guild Party": {
-        "Monday": "19:00",
-        "Tuesday": "19:00",
-        "Wednesday": "19:00",
+        "Monday": "15:00",
+        "Tuesday": "15:00",
+        "Wednesday": "15:00",
         "Thursday": "15:00",
         "Friday": "15:00",
         "Saturday": "15:00",
@@ -55,7 +55,6 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
     "Event Signup": {
         "Monday": "15:00",
     },
-
 }
 
 EVENT_NOTIFICATION_MESSAGES: dict[str, str] = {
@@ -121,7 +120,7 @@ participate in.
 {role_mention} Reminder: **{event_name}** is starting!
 Guild Tower (Skyward Bond) is weekly on {current_day} at {timestamp} ({relative_timestamp}).
 
-We do two runs per week:
+Morningstar does two Guild Tower runs per week:
 - Thursday runs are typically for learning and getting people through the lower floors.
 - Friday runs are when we take the highest DPS in guild to try and clear the highest floors we can.
 
