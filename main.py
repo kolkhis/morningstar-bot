@@ -48,10 +48,10 @@ GUILD_EVENTS: dict[str, dict[str, str]] = {
         "Saturday": "15:10",
         "Sunday": "17:00",
         },
-    "Guild Tower (Skyward Bond)": {
-        "Thursday": "14:00",
-        "Friday": "14:00",
-    },
+    # "Guild Tower (Skyward Bond)": {
+    #     "Thursday": "14:00",
+    #     "Friday": "14:00",
+    # },
     "Event Signup": {
         "Monday": "15:00",
     },
