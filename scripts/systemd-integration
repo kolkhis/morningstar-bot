@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/discord-bot.service"
-declare -r SYSTEMD_SERVICE_FILE="./test.service"
+declare -r SERVICE_FILE_NAME="discord-bot.service"
+# declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/$SERVICE_FILE_NAME"
+declare -r SYSTEMD_SERVICE_FILE="$SERVICE_FILE_NAME"
 
 fatal() {
     printf >&2 '[ \033[31mFATAL ERROR\033[0m ]: %s\n' "$*";
@@ -37,6 +38,9 @@ while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
     case $1 in
         -r|--remove)
             # Remove the service file
+            if sudo sytemctl is-active --quiet "$SERVICE_FILE_NAME"; then
+                sudo systemctl disable --now "$SERVICE_FILE_NAME"
+            fi
             sudo rm -f "$SYSTEMD_SERVICE_FILE" || {
                 fatal "Failed to remove system service file at $SYSTEMD_SERVICE_FILE"
             }
