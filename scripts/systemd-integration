@@ -32,13 +32,29 @@ EOF
     return 0
 }
 
+while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
+
+    case $1 in
+        -r|--remove)
+            # Remove the service file
+            sudo rm -f "$SYSTEMD_SERVICE_FILE" || {
+                fatal "Failed to remove system service file at $SYSTEMD_SERVICE_FILE"
+            }
+            exit 0
+            ;;
+
+        *) fatal "Unknown option: $1" ;;
+
+    esac
+done
+
+
 set-service-file-perms(){
     local service_file_perms
     service_file_perms=$(stat $SYSTEMD_SERVICE_FILE | perl -ne 'print $1 if m/^\s*Access: \((\d{4}).*$/')
     if [[ $service_file_perms != '0755' ]]; then
         sudo chmod 0755 "$SYSTEMD_SERVICE_FILE" || { 
-            err "Failed to set service file permissions to 0755!";
-            return 1
+            err "Failed to set service file permissions to 0755!"; return 1;
         }
     fi
     return 0
@@ -52,6 +68,7 @@ fi
 
 if ! [[ -f "$SYSTEMD_SERVICE_FILE" ]]; then
     write-service-file
+    set-service-file-perms
 else
     printf "\033[33mWARNING: Systemd file already exists. This will overwrite the current service file.\033[0m\n"
     read -r -p "Would you like to overwrite the current service file? [y/N]: " overwrite
