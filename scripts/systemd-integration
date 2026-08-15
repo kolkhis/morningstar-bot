@@ -46,7 +46,7 @@ set-service-file-perms(){
 
 if ! [[ -f ./main.py ]]; then
     printf >&2 "ERROR: main.py not found in the current directory.\n\n"
-    printf >&2 'Are you in the correct directory? Run from root of project directory with "./scritps/systemd-integration"\n'
+    printf >&2 'Are you in the correct directory? Run from root of project directory with "./scripts/systemd-integration"\n'
     exit 1
 fi
 
