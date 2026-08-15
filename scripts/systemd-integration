@@ -33,6 +33,17 @@ EOF
     return 0
 }
 
+set-service-file-perms(){
+    local service_file_perms
+    service_file_perms=$(stat $SYSTEMD_SERVICE_FILE | perl -ne 'print $1 if m/^\s*Access: \((\d{4}).*$/')
+    if [[ $service_file_perms != '0755' ]]; then
+        sudo chmod 0755 "$SYSTEMD_SERVICE_FILE" || { 
+            err "Failed to set service file permissions to 0755!"; return 1;
+        }
+    fi
+    return 0
+}
+
 while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
 
     case $1 in
@@ -51,18 +62,6 @@ while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
 
     esac
 done
-
-
-set-service-file-perms(){
-    local service_file_perms
-    service_file_perms=$(stat $SYSTEMD_SERVICE_FILE | perl -ne 'print $1 if m/^\s*Access: \((\d{4}).*$/')
-    if [[ $service_file_perms != '0755' ]]; then
-        sudo chmod 0755 "$SYSTEMD_SERVICE_FILE" || { 
-            err "Failed to set service file permissions to 0755!"; return 1;
-        }
-    fi
-    return 0
-}
 
 if ! [[ -f ./main.py ]]; then
     printf >&2 "ERROR: main.py not found in the current directory.\n\n"
