@@ -8,6 +8,10 @@ fatal() {
     exit 1
 }
 
+err() {
+    printf >&2 '[ \033[31mERROR\033[0m ]: %s\n' "$*";
+}
+
 write-service-file(){
     local python_path
     python_path="$(command -v python3)" || {
@@ -25,6 +29,18 @@ ExecStart=$python_path $PWD/main.py
 Restart=always
 RestartSec=5
 EOF
+    return 0
+}
+
+set-service-file-perms(){
+    local service_file_perms
+    service_file_perms=$(stat $SYSTEMD_SERVICE_FILE | perl -ne 'print $1 if m/^\s*Access: \((\d{4}).*$/')
+    if [[ $service_file_perms != '0755' ]]; then
+        sudo chmod 0755 "$SYSTEMD_SERVICE_FILE" || { 
+            err "Failed to set service file permissions to 0755!";
+            return 1
+        }
+    fi
     return 0
 }
 
@@ -46,6 +62,7 @@ else
         printf "Not overwriting current service file.\n"
     fi
 fi
+
 
 printf "Starting and enabling the service...\n"
 
