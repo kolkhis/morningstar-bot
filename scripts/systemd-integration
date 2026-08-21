@@ -36,7 +36,7 @@ write-env-file(){
     fi
 
     if grep -qi 'export' $SYSTEMD_ENVIRONMENT_FILE; then
-        perl -pi -e 's/export //' "$SYSTEMD_ENVIRONMENT_FILE"
+        sudo perl -pi -e 's/export //' "$SYSTEMD_ENVIRONMENT_FILE"
     fi
 
     sudo chown -R "$(id -u kolkhis)":"$(id -g kolkhis)" "$env_dir" || {
