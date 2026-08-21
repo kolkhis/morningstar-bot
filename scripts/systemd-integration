@@ -26,9 +26,12 @@ After=network.target
 [Service]
 User=$USER
 WorkingDirectory=$PWD
-ExecStart=source $PWD/venv/bin/activate && $python_path $PWD/main.py
+ExecStart=$PWD/venv/bin/python3 $PWD/main.py
 Restart=always
 RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
 EOF
     return 0
 }
