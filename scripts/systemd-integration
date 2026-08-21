@@ -1,8 +1,8 @@
 #!/bin/bash
 
 declare -r SERVICE_FILE_NAME="discord-bot.service"
-# declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/$SERVICE_FILE_NAME"
-declare -r SYSTEMD_SERVICE_FILE="$SERVICE_FILE_NAME"
+declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/$SERVICE_FILE_NAME"
+# declare -r SYSTEMD_SERVICE_FILE="$SERVICE_FILE_NAME"
 
 
 fatal() {
