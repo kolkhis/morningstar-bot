@@ -2,6 +2,8 @@
 
 declare -r SERVICE_FILE_NAME="discord-bot.service"
 declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/$SERVICE_FILE_NAME"
+declare -r PROJECT_ENVIRONMENT_FILE="$PWD/.env"
+declare -r SYSTEMD_ENVIRONMENT_FILE="/opt/morningstar-bot/env"
 # declare -r SYSTEMD_SERVICE_FILE="$SERVICE_FILE_NAME"
 
 
@@ -12,6 +14,37 @@ fatal() {
 
 err() {
     printf >&2 '[ \033[31mERROR\033[0m ]: %s\n' "$*";
+}
+
+write-env-file(){
+    local env_dir="${SYSTEMD_ENVIRONMENT_FILE%/*}" 
+    if ! [[ -f $PROJECT_ENVIRONMENT_FILE ]]; then
+        printf >&2 'ERROR: Environment file not found: %s\n' "$PROJECT_ENVIRONMENT_FILE"
+        return 1
+    fi
+
+    if ! [[ -d $env_dir ]]; then
+        sudo mkdir -p "$env_dir" || {
+            printf >&2 'ERROR: Failed to create environment file directory %s\n' "$env_dir"
+            return 1
+        }
+    fi
+
+    if ! sudo cp "$PROJECT_ENVIRONMENT_FILE" "$PROJECT_ENVIRONMENT_FILE"; then
+        printf >&2 'ERROR: Failed to copy environment file from %s to %s\n' "$PROJECT_ENVIRONMENT_FILE" "$SYSTEMD_ENVIRONMENT_FILE"
+        return 1
+    fi
+
+    if grep -qi 'export' $SYSTEMD_ENVIRONMENT_FILE; then
+        perl -pi -e 's/export //' "$SYSTEMD_ENVIRONMENT_FILE"
+    fi
+
+    sudo chown "$(id -u kolkhis)":"$(id -g kolkhis)" "$SYSTEMD_ENVIRONMENT_FILE" || {
+        printf >&2 'ERROR: Failed to change ownership of systemd environment file: %s\n' "$SYSTEMD_ENVIRONMENT_FILE"
+    }
+    sudo chmod 700 "$SYSTEMD_ENVIRONMENT_FILE" || {
+        printf >&2 'ERROR: Failed to change permissions of systemd environment file: %s\n' "$SYSTEMD_ENVIRONMENT_FILE"
+    }
 }
 
 write-service-file(){
@@ -75,8 +108,17 @@ if ! [[ -f ./main.py ]]; then
 fi
 
 if ! [[ -f "$SYSTEMD_SERVICE_FILE" ]]; then
-    write-service-file
-    set-service-file-perms
+    write-service-file || {
+        printf >&2 'ERROR: Failed to write service file (function returned non-zero)\n'
+    }
+
+    write-env-file || {
+        printf >&2 'ERROR: Failed to write environemnt file (function returned non-zero)\n'
+    }
+    set-service-file-perms || {
+        printf >&2 'ERROR: Failed to change service file permissions (function returned non-zero)\n'
+    }
+
 else
     printf "\033[33mWARNING: Systemd file already exists. This will overwrite the current service file.\033[0m\n"
     read -r -p "Would you like to overwrite the current service file? [y/N]: " overwrite
