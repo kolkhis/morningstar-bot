@@ -4,6 +4,7 @@ declare -r SERVICE_FILE_NAME="discord-bot.service"
 # declare -r SYSTEMD_SERVICE_FILE="/etc/systemd/system/$SERVICE_FILE_NAME"
 declare -r SYSTEMD_SERVICE_FILE="$SERVICE_FILE_NAME"
 
+
 fatal() {
     printf >&2 '[ \033[31mFATAL ERROR\033[0m ]: %s\n' "$*";
     exit 1
@@ -14,6 +15,7 @@ err() {
 }
 
 write-service-file(){
+    local systemd_user=kolkhis
     local python_path
     python_path="$(command -v python3)" || {
         fatal "Failed to find Python3 in PATH."
@@ -24,7 +26,7 @@ Description=Morningstar Discord Bot Service
 After=network.target
 
 [Service]
-User=$USER
+User=$systemd_user
 WorkingDirectory=$PWD
 ExecStart=$PWD/venv/bin/python3 $PWD/main.py
 Restart=always
