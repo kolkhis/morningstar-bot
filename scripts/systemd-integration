@@ -62,6 +62,7 @@ After=network.target
 User=$systemd_user
 WorkingDirectory=$PWD
 ExecStart=$PWD/venv/bin/python3 $PWD/main.py
+EnvironmentFile=$SYSTEMD_ENVIRONMENT_FILE
 Restart=always
 RestartSec=5
 
