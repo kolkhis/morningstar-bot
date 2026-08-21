@@ -26,7 +26,7 @@ After=network.target
 [Service]
 User=$USER
 WorkingDirectory=$PWD
-ExecStart=$python_path $PWD/main.py
+ExecStart=source $PWD/venv/bin/activate && $python_path $PWD/main.py
 Restart=always
 RestartSec=5
 EOF
@@ -86,7 +86,7 @@ fi
 
 printf "Starting and enabling the service...\n"
 
-if ! sudo systemctl enable --now discordbot.service; then  
+if ! sudo systemctl enable --now discord-bot.service; then  
     fatal "Failed to start and enable the service. Please check the service file and try again."
 fi
 
