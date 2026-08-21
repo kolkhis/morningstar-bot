@@ -30,7 +30,7 @@ write-env-file(){
         }
     fi
 
-    if ! sudo cp "$PROJECT_ENVIRONMENT_FILE" "$PROJECT_ENVIRONMENT_FILE"; then
+    if ! sudo cp "$PROJECT_ENVIRONMENT_FILE" "$SYSTEMD_ENVIRONMENT_FILE"; then
         printf >&2 'ERROR: Failed to copy environment file from %s to %s\n' "$PROJECT_ENVIRONMENT_FILE" "$SYSTEMD_ENVIRONMENT_FILE"
         return 1
     fi
@@ -39,7 +39,7 @@ write-env-file(){
         perl -pi -e 's/export //' "$SYSTEMD_ENVIRONMENT_FILE"
     fi
 
-    sudo chown "$(id -u kolkhis)":"$(id -g kolkhis)" "$SYSTEMD_ENVIRONMENT_FILE" || {
+    sudo chown -R "$(id -u kolkhis)":"$(id -g kolkhis)" "$env_dir" || {
         printf >&2 'ERROR: Failed to change ownership of systemd environment file: %s\n' "$SYSTEMD_ENVIRONMENT_FILE"
     }
     sudo chmod 700 "$SYSTEMD_ENVIRONMENT_FILE" || {
