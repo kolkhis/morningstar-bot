@@ -49,7 +49,7 @@ while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
     case $1 in
         -r|--remove)
             # Remove the service file
-            if sudo sytemctl is-active --quiet "$SERVICE_FILE_NAME"; then
+            if sudo systemctl is-active --quiet "$SERVICE_FILE_NAME"; then
                 sudo systemctl disable --now "$SERVICE_FILE_NAME"
             fi
             sudo rm -f "$SYSTEMD_SERVICE_FILE" || {
