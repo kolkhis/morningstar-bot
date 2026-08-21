@@ -125,7 +125,15 @@ else
     read -r -p "Would you like to overwrite the current service file? [y/N]: " overwrite
     if [[ $overwrite == [yY] ]]; then
         printf "Overwriting current service file...\n"
-        write-service-file
+        write-service-file || {
+            printf >&2 'ERROR: Failed to write service file (function returned non-zero)\n'
+        }
+        write-env-file || {
+            printf >&2 'ERROR: Failed to write environemnt file (function returned non-zero)\n'
+        }
+        set-service-file-perms || {
+            printf >&2 'ERROR: Failed to change service file permissions (function returned non-zero)\n'
+        }
     else
         printf "Not overwriting current service file.\n"
     fi
