@@ -91,6 +91,12 @@ while [[ -n $1 && $1 =~ ^- && $1 != '--' ]]; do
             if sudo systemctl is-active --quiet "$SERVICE_FILE_NAME"; then
                 sudo systemctl disable --now "$SERVICE_FILE_NAME"
             fi
+            sudo systemctl clean --what=all "$SERVICE_FILE_NAME" || {
+                err "Failed to clean systemd service: $SERVICE_FILE_NAME"
+            }
+            sudo systemctl reset-failed "$SERVICE_FILE_NAME" || {
+                err "Failed to reset failed state for systemd service: $SERVICE_FILE_NAME"
+            }
             sudo rm -f "$SYSTEMD_SERVICE_FILE" || {
                 fatal "Failed to remove system service file at $SYSTEMD_SERVICE_FILE"
             }
