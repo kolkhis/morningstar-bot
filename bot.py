@@ -438,10 +438,10 @@ class Bot(commands.Bot):
                     value=f"{message.author.mention} has unlocked access to the Sunken Market event by reaching level {new_level}!", inline=False
                     )
             embed.set_thumbnail(url=message.author.display_avatar.url if message.author.display_avatar else None)
-            await channel.send(
-                content=f"{message.author.mention} leveled up!",
-                embed=embed,
-            )
+            # await channel.send(
+            #     content=f"{message.author.mention} leveled up!",
+            #     embed=embed,
+            # )
         await self.process_commands(message)
 
     ############## GIVEAWAYS METHODS ##############
